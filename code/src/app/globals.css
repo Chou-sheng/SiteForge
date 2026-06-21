@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: #f7f8ff;
+  color: #0f172a;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.page-renderer {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.page-renderer__block {
+  transform-origin: center top;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-renderer__block {
+    animation: page-block-reveal both ease-out;
+    animation-range: entry 8% cover 28%;
+    animation-timeline: view();
+  }
+
+  .page-renderer__block:has([data-atelier-scroll="scrub"]) {
+    animation: none;
+    transform: none;
+  }
+}
+
+@keyframes page-block-reveal {
+  from {
+    opacity: 0.45;
+    transform: translateY(36px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

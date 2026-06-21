@@ -1,0 +1,8 @@
+Product: 站点工坊 SiteForge
+Version: 0.1.0
+Build date: 2026-06-21
+Target: Windows x64 folder distribution
+Runtime: Electron + Next.js standalone
+Executable: SiteForge.exe
+Release folder: SiteForge
+User data: %APPDATA%/SiteForge/

@@ -1,0 +1,9 @@
+allowBuilds:
+  electron: true
+  electron-winstaller: false
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
+# Next.js standalone 在普通 Windows 上无法复制 pnpm 的符号链接；使用无符号链接布局。
+nodeLinker: hoisted

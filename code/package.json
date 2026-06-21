@@ -1,0 +1,100 @@
+{
+  "name": "siteforge",
+  "version": "0.1.0",
+  "description": "站点工坊 SiteForge：本地运行的网站生成、可视化编辑与静态发布工具。",
+  "author": "SiteForge",
+  "private": true,
+  "main": "desktop/dist/main.js",
+  "scripts": {
+    "static-runtime:build": "node scripts/build-static-site-runtime.mjs",
+    "dev": "pnpm static-runtime:build && next dev",
+    "build": "pnpm static-runtime:build && next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "test": "pnpm static-runtime:build && vitest run",
+    "test:watch": "pnpm static-runtime:build && vitest",
+    "desktop:compile": "tsc -p desktop/tsconfig.json",
+    "desktop:prepare": "node scripts/prepare-desktop-build.mjs",
+    "desktop:package": "pnpm build && pnpm desktop:compile && pnpm desktop:prepare && cd desktop-build/app && ../../node_modules/.bin/electron-builder --win --x64 --dir && node ../../scripts/finalize-desktop-release.mjs"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "gsap": "^3.15.0",
+    "lucide-react": "^0.468.0",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "swiper": "^12.2.0",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.21.5",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.0.0",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "build": {
+    "appId": "com.siteforge.desktop",
+    "productName": "站点工坊 SiteForge",
+    "executableName": "SiteForge",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "app": "desktop-build/app",
+      "output": "release"
+    },
+    "files": [
+      "**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "desktop-build/server",
+        "to": "server",
+        "filter": [
+          "**/*",
+          "!node_modules{,/**/*}"
+        ]
+      },
+      {
+        "from": "desktop-build/server/node_modules",
+        "to": "server/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "extraFiles": [
+      {
+        "from": "README.md",
+        "to": "README.md"
+      },
+      {
+        "from": "config.example.env",
+        "to": "config.example.env"
+      },
+      {
+        "from": "VERSION.txt",
+        "to": "VERSION.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.txt",
+        "to": "THIRD_PARTY_NOTICES.txt"
+      }
+    ]
+  }
+}
