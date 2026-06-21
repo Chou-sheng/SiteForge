@@ -218,9 +218,3 @@ pnpm desktop:compile     # 编译 Electron 主进程
 pnpm desktop:package     # 打包 Windows 桌面文件夹版应用
 pnpm static-runtime:build # 构建静态站点运行时资源
 ```
-
-## 注意事项
-
-- 不要提交 `.env.local`、真实 API Key、`node_modules/`、`.next/`、`desktop-build/` 或 `release/`。
-- 当前仓库只需要上传 `code/` 源码，不需要上传 `demo/`、打包后的 exe 或 release 产物。
-- 如果修改了页面渲染或静态发布逻辑，建议同时运行 `pnpm test` 和 `pnpm build`。
