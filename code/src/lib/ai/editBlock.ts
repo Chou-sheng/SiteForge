@@ -3,6 +3,7 @@ import type { EnterprisePageDocument } from "../../types/page";
 import { getBlockPropsSchema } from "../validation/blockSchemas";
 import { pageBlockSchema } from "../validation/pageSchema";
 import { requestDeepSeekCompletion } from "./deepseekClient";
+import { buildDesignTasteInstruction, getDesignTasteBlockIssues } from "./designTaste";
 import { blockEditSystemPrompt } from "./prompts";
 import { extractJsonObject } from "./repairJson";
 
@@ -19,13 +20,11 @@ export type EditBlockInput = {
   instruction: string;
 };
 
-export type AIResultSource = "deepseek" | "local-fallback";
-export type AIFallbackReason = "missing-api-key" | "deepseek-request-failed" | "invalid-ai-response";
+export type AIResultSource = "deepseek";
 
 export type EditBlockResult = {
   block: PageBlock;
   source: AIResultSource;
-  fallbackReason?: AIFallbackReason;
 };
 
 type DeepSeekChoice = {
@@ -37,8 +36,6 @@ type DeepSeekChoice = {
 type DeepSeekResponse = {
   choices?: DeepSeekChoice[];
 };
-
-const textLikeFields = ["title", "subtitle", "description", "eyebrow", "message"] as const;
 
 function contextSummary(pageContext: EditBlockPageContext): Record<string, unknown> {
   if ("siteMeta" in pageContext) {
@@ -100,43 +97,37 @@ function validateEditedBlock(parsed: unknown, original: PageBlock): PageBlock | 
   return result.data as PageBlock;
 }
 
-export function editBlockLocally(input: EditBlockInput): PageBlock {
-  const instruction = input.instruction.trim() || "优化文案";
-  const nextProps = { ...input.block.props };
+function tasteContext(input: EditBlockInput) {
+  const summary = contextSummary(input.pageContext);
 
-  for (const field of textLikeFields) {
-    const value = nextProps[field];
-
-    if (typeof value === "string" && value.trim()) {
-      nextProps[field] = `${value}（已根据要求优化：${instruction}）`;
-    }
-  }
-
-  const localBlock = {
-    ...input.block,
-    props: nextProps,
-    style: { ...input.block.style },
-    visibility: { ...input.block.visibility },
+  return {
+    title: typeof summary.title === "string" ? summary.title : undefined,
+    industry: typeof summary.industry === "string" ? summary.industry : undefined,
+    pageType: typeof summary.pageGoal === "string" ? summary.pageGoal : undefined,
+    instruction: input.instruction,
   };
-
-  return pageBlockSchema.parse(localBlock) as PageBlock;
 }
 
 async function requestDeepSeekBlock(input: EditBlockInput, apiKey: string): Promise<PageBlock | null> {
+  const taste = tasteContext(input);
+  const systemPrompt = [
+    blockEditSystemPrompt,
+    buildDesignTasteInstruction(taste, "block-edit"),
+  ].join("\n\n");
   const response = await requestDeepSeekCompletion(
     apiKey,
     {
       model: process.env.DEEPSEEK_MODEL || "deepseek-v4-flash",
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: blockEditSystemPrompt },
+        { role: "system", content: systemPrompt },
         { role: "user", content: buildUserPrompt(input) },
       ],
     },
   );
 
   if (!response.ok) {
-    return null;
+    throw new Error("DeepSeek block edit request failed");
   }
 
   const payload = (await response.json()) as DeepSeekResponse;
@@ -148,7 +139,13 @@ async function requestDeepSeekBlock(input: EditBlockInput, apiKey: string): Prom
 
   const parsed = extractJsonObject(content);
 
-  return validateEditedBlock(parsed, input.block);
+  const block = validateEditedBlock(parsed, input.block);
+
+  if (!block) {
+    return null;
+  }
+
+  return getDesignTasteBlockIssues(block, taste).length === 0 ? block : null;
 }
 
 export async function editBlockWithAI(input: EditBlockInput): Promise<{ block: PageBlock }> {
@@ -161,33 +158,23 @@ export async function editBlockWithAIResult(input: EditBlockInput): Promise<Edit
   const apiKey = process.env.DEEPSEEK_API_KEY;
 
   if (!apiKey) {
-    return {
-      block: editBlockLocally(input),
-      source: "local-fallback",
-      fallbackReason: "missing-api-key",
-    };
+    throw new Error("DeepSeek API Key 未配置");
   }
+
+  let block: PageBlock | null;
 
   try {
-    const block = await requestDeepSeekBlock(input, apiKey);
-
-    if (block) {
-      return {
-        block,
-        source: "deepseek",
-      };
-    }
-
-    return {
-      block: editBlockLocally(input),
-      source: "local-fallback",
-      fallbackReason: "invalid-ai-response",
-    };
+    block = await requestDeepSeekBlock(input, apiKey);
   } catch {
-    return {
-      block: editBlockLocally(input),
-      source: "local-fallback",
-      fallbackReason: "deepseek-request-failed",
-    };
+    throw new Error("DeepSeek 区块编辑请求失败");
   }
+
+  if (!block) {
+    throw new Error("DeepSeek 区块编辑结果无效");
+  }
+
+  return {
+    block,
+    source: "deepseek",
+  };
 }

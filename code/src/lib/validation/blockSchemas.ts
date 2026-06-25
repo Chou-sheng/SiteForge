@@ -42,6 +42,33 @@ const personSchema = z.object({
   bio: z.string().optional(),
 });
 
+const generatedSectionLayoutSchema = z.enum([
+  "hero",
+  "feature-grid",
+  "split-story",
+  "metric-band",
+  "timeline",
+  "proof",
+  "conversion",
+]);
+
+const generatedSectionItemSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  icon: z.string().optional(),
+  value: z.string().optional(),
+  label: z.string().optional(),
+  meta: z.string().optional(),
+  href: z.string().optional(),
+  image: imageSchema.optional(),
+});
+
+const generatedSectionToneSchema = z.object({
+  surface: z.enum(["light", "muted", "dark", "brand"]).optional(),
+  accent: z.string().optional(),
+  rhythm: z.enum(["quiet", "editorial", "dense", "dramatic"]).optional(),
+}).optional();
+
 // Block props schemas intentionally remain permissive for MVP template iteration.
 export const blockPropsSchemas = {
   announcementBar: z.object({
@@ -421,6 +448,23 @@ export const blockPropsSchemas = {
     companyName: z.string().min(1),
     links: z.array(linkSchema).optional(),
     copyright: z.string().optional(),
+  }),
+  aiGeneratedSection: z.object({
+    generatedModuleId: z.string().min(1),
+    intent: z.string().min(1),
+    layout: generatedSectionLayoutSchema,
+    eyebrow: z.string().optional(),
+    title: z.string().min(1),
+    subtitle: z.string().optional(),
+    description: z.string().optional(),
+    primaryAction: actionSchema.optional(),
+    secondaryAction: actionSchema.optional(),
+    image: imageSchema.optional(),
+    items: z.array(generatedSectionItemSchema).optional(),
+    metrics: z.array(metricSchema).optional(),
+    fields: z.array(z.string().min(1)).optional(),
+    tone: generatedSectionToneSchema,
+    styleNotes: z.array(z.string().min(1)).optional(),
   }),
   footer: z.object({
     companyName: z.string().min(1),

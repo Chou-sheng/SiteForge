@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 
 import { enterpriseTemplates } from "../../src/lib/templates/enterpriseTemplates";
 
-const premiumTypes = new Set([
+const premiumTypes = new Set<string>([
   "immersiveHero",
   "animatedMetrics",
   "showcaseCarousel",
@@ -11,7 +11,7 @@ const premiumTypes = new Set([
   "testimonialCarousel",
 ]);
 
-const educationMotionTypes = new Set([
+const educationMotionTypes = new Set<string>([
   "learningHero",
   "learningMetrics",
   "courseTrackCarousel",
@@ -19,7 +19,7 @@ const educationMotionTypes = new Set([
   "studentStoryCarousel",
 ]);
 
-const travelMotionTypes = new Set([
+const travelMotionTypes = new Set<string>([
   "destinationHero",
   "routeHighlights",
   "experienceMarquee",
@@ -31,7 +31,7 @@ const travelMotionTypes = new Set([
   "travelFooter",
 ]);
 
-const atelierMotionTypes = new Set([
+const atelierMotionTypes = new Set<string>([
   "atelierHero",
   "projectIndex",
   "materialStudy",
@@ -94,14 +94,14 @@ describe("premium template differentiation", () => {
   });
 
   test("uses education-specific motion modules instead of static-only blocks", () => {
-    const educationTypes = new Set(blockTypeSequence("education"));
+    const educationTypes = new Set<string>(blockTypeSequence("education"));
 
     expect([...educationMotionTypes].every((type) => educationTypes.has(type))).toBe(true);
     expect([...premiumTypes].some((type) => educationTypes.has(type))).toBe(false);
   });
 
   test("uses travel-specific motion modules without borrowing AI or education blocks", () => {
-    const travelTypes = new Set(blockTypeSequence("travel"));
+    const travelTypes = new Set<string>(blockTypeSequence("travel"));
 
     expect([...travelMotionTypes].every((type) => travelTypes.has(type))).toBe(true);
     expect([...premiumTypes].some((type) => travelTypes.has(type))).toBe(false);
@@ -109,7 +109,7 @@ describe("premium template differentiation", () => {
   });
 
   test("uses atelier-specific motion modules without borrowing previous premium systems", () => {
-    const atelierTypes = new Set(blockTypeSequence("atelier"));
+    const atelierTypes = new Set<string>(blockTypeSequence("atelier"));
 
     expect([...atelierMotionTypes].every((type) => atelierTypes.has(type))).toBe(true);
     expect([...premiumTypes].some((type) => atelierTypes.has(type))).toBe(false);

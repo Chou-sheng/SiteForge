@@ -16,6 +16,8 @@ export type FeatureItem = {
   title: string;
   description?: string;
   icon?: string;
+  value?: string;
+  label?: string;
   href?: string;
   meta?: string;
   image?: ImageValue;
@@ -119,6 +121,16 @@ export function getFeatureList(props: Record<string, unknown>, key: string): Fea
       title: item.title,
       description: typeof item.description === "string" && item.description.trim() ? item.description : undefined,
       icon: typeof item.icon === "string" && item.icon.trim() ? item.icon : undefined,
+      value: typeof item.value === "string" && item.value.trim()
+        ? item.value
+        : typeof item.price === "string" && item.price.trim()
+          ? item.price
+          : undefined,
+      label: typeof item.label === "string" && item.label.trim()
+        ? item.label
+        : typeof item.rating === "string" && item.rating.trim()
+          ? item.rating
+          : undefined,
       href: typeof item.href === "string" && item.href.trim() ? item.href : undefined,
       meta: typeof item.meta === "string" && item.meta.trim() ? item.meta : undefined,
       image: getImageProp(item, "image"),

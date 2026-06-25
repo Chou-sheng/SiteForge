@@ -7,6 +7,7 @@ import {
   blockRegistry,
   createDefaultBlock,
   getBlockDefinition,
+  runtimeOnlyBlockTypes,
 } from "../../src/modules/registry";
 import { GenericBlockRenderer } from "../../src/modules/shared/GenericBlockRenderer";
 import { blockTypes } from "../../src/modules/types";
@@ -151,6 +152,19 @@ describe("block registry", () => {
     }
   });
 
+  test("keeps AI generated sections registered for rendering but hidden from the module library", () => {
+    const categorizedTypes = blockCategories.flatMap((category) => category.types);
+    const definition = getBlockDefinition("aiGeneratedSection");
+    const block = createDefaultBlock("aiGeneratedSection");
+
+    expect(runtimeOnlyBlockTypes).toContain("aiGeneratedSection");
+    expect(categorizedTypes).not.toContain("aiGeneratedSection");
+    expect(definition.name).toContain("AI");
+    expect(block.type).toBe("aiGeneratedSection");
+    expect(block.props.generatedModuleId).toMatch(/^generated-/);
+    expect(pageBlockSchema.safeParse(block).success).toBe(true);
+  });
+
   test("creates independent default block objects", () => {
     const first = createDefaultBlock("hero");
     const second = createDefaultBlock("hero", "centered");
@@ -235,8 +249,12 @@ describe("block registry", () => {
 
   test("groups registered types into Chinese categories", () => {
     const categorizedTypes = blockCategories.flatMap((category) => category.types);
+    const moduleLibraryTypes = blockTypes.filter(
+      (type) => !(runtimeOnlyBlockTypes as readonly string[]).includes(type),
+    );
 
-    expect(categorizedTypes.slice().sort()).toEqual(blockTypes.slice().sort());
+    expect(categorizedTypes.slice().sort()).toEqual(moduleLibraryTypes.slice().sort());
+    expect(categorizedTypes).not.toContain("aiGeneratedSection");
     expect(blockCategories.every((category) => /[\u4e00-\u9fff]/.test(category.name))).toBe(true);
   });
 });

@@ -1,1 +1,671 @@
-[]
+[
+  {
+    "id": "page-atelier-1782292561437-chog0t8z1as",
+    "status": "DRAFT",
+    "document": {
+      "id": "page-atelier-1782292561437-chog0t8z1as",
+      "title": "高级美食首页",
+      "description": "精致温暖的美食品牌首页",
+      "version": 1,
+      "siteMeta": {
+        "companyName": "臻味食府",
+        "industry": "建筑空间设计",
+        "targetAudience": "美食爱好者、高端食客",
+        "pageGoal": "brand-display",
+        "seoTitle": "臻味食府 | 高端精致料理体验",
+        "seoDescription": "臻味食府以本地新鲜食材和精湛厨艺，为您带来味觉与视觉的双重盛宴。在线预订餐位，探索我们的招牌菜单。",
+        "keywords": [
+          "建筑空间设计"
+        ]
+      },
+      "theme": {
+        "colorTokens": {
+          "primary": "#0f172a",
+          "primaryHover": "#1e293b",
+          "secondary": "#0e7490",
+          "accent": "#be123c",
+          "background": "#ffffff",
+          "surface": "#ffffff",
+          "muted": "#f8fafc",
+          "textPrimary": "#020617",
+          "textSecondary": "#475569",
+          "border": "#e2e8f0"
+        },
+        "typography": {
+          "fontFamily": "Inter, PingFang SC, Microsoft YaHei, sans-serif",
+          "headingWeight": 700,
+          "bodyWeight": 400,
+          "h1Size": "56px",
+          "h2Size": "36px",
+          "h3Size": "24px",
+          "bodySize": "16px"
+        },
+        "radius": {
+          "sm": "4px",
+          "md": "8px",
+          "lg": "12px",
+          "xl": "16px"
+        },
+        "shadow": {
+          "card": "0 8px 28px rgba(15, 23, 42, 0.08)",
+          "elevated": "0 18px 46px rgba(15, 23, 42, 0.12)",
+          "floating": "0 24px 60px rgba(15, 23, 42, 0.16)"
+        },
+        "spacing": {
+          "sectionY": "88px",
+          "containerX": "24px",
+          "blockGap": "32px"
+        }
+      },
+      "layout": {
+        "maxWidth": "1440px",
+        "contentDensity": "comfortable",
+        "responsiveMode": "enterprise"
+      },
+      "blocks": [
+        {
+          "id": "block-header",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "Header",
+          "props": {
+            "generatedModuleId": "generated-header",
+            "intent": "header-navigation",
+            "layout": "split-story",
+            "title": "臻味食府",
+            "items": [
+              {
+                "title": "首页",
+                "href": "#"
+              },
+              {
+                "title": "菜单",
+                "href": "#"
+              },
+              {
+                "title": "关于",
+                "href": "#"
+              },
+              {
+                "title": "评价",
+                "href": "#"
+              },
+              {
+                "title": "联系",
+                "href": "#"
+              }
+            ]
+          },
+          "style": {
+            "background": "default",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "left",
+            "container": "contained"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-hero",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "Hero",
+          "props": {
+            "generatedModuleId": "generated-hero",
+            "intent": "hero-visual",
+            "layout": "hero",
+            "title": "味觉的艺术之旅",
+            "subtitle": "每一道菜，都是一次感官的探索",
+            "image": {
+              "src": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200",
+              "alt": "高级美食主视觉"
+            }
+          },
+          "style": {
+            "background": "image",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "center",
+            "container": "full"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-signature-dishes",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "招牌推荐",
+          "props": {
+            "generatedModuleId": "generated-dishes",
+            "intent": "showcase dishes",
+            "layout": "feature-grid",
+            "title": "招牌推荐",
+            "subtitle": "甄选当季食材，匠心烹饪",
+            "items": [
+              {
+                "title": "香煎鹅肝",
+                "description": "配无花果酱，松露泡沫",
+                "value": "￥388",
+                "meta": "主厨精选",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400",
+                  "alt": "香煎鹅肝"
+                }
+              },
+              {
+                "title": "澳洲和牛",
+                "description": "M9级，黑松露土豆泥",
+                "value": "￥688",
+                "meta": "招牌",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1544025162-d76694265947?w=400",
+                  "alt": "澳洲和牛"
+                }
+              },
+              {
+                "title": "龙虾浓汤",
+                "description": "配干邑奶油，香草油",
+                "value": "￥268",
+                "meta": "推荐",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400",
+                  "alt": "龙虾浓汤"
+                }
+              },
+              {
+                "title": "蝶豆花甜品",
+                "description": "椰子慕斯，芒果酱",
+                "value": "￥128",
+                "meta": "新品",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1567327613478-45e5f7b5b5f5?w=400",
+                  "alt": "蝶豆花甜品"
+                }
+              },
+              {
+                "title": "松露烩饭",
+                "description": "意大利米，帕玛森芝士",
+                "value": "￥328",
+                "meta": "素食可选",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400",
+                  "alt": "松露烩饭"
+                }
+              },
+              {
+                "title": "金枪鱼塔塔",
+                "description": "牛油果，芝麻，柚子醋",
+                "value": "￥188",
+                "meta": "开胃菜",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400",
+                  "alt": "金枪鱼塔塔"
+                }
+              }
+            ]
+          },
+          "style": {
+            "background": "default",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "center",
+            "container": "contained"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-about",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "关于品牌",
+          "props": {
+            "generatedModuleId": "generated-about",
+            "intent": "brand-story",
+            "layout": "split-story",
+            "title": "从农场到餐桌",
+            "subtitle": "我们的理念",
+            "description": "我们与本地农场建立长期合作，坚持可持续的食材采购，每一份食材都经过严格筛选。主厨曾在米其林餐厅工作十余年，将法式料理技巧与东方味道完美融合。",
+            "image": {
+              "src": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800",
+              "alt": "田园食材"
+            }
+          },
+          "style": {
+            "background": "muted",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "left",
+            "container": "contained"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-menu-categories",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "菜单分类",
+          "props": {
+            "generatedModuleId": "generated-categories",
+            "intent": "menu categories",
+            "layout": "feature-grid",
+            "title": "菜单分类",
+            "subtitle": "探索我们的美食世界",
+            "items": [
+              {
+                "title": "早餐",
+                "description": "清晨的第一缕美味",
+                "meta": "7:00-11:00",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1495214783159-3503fd1b572d?w=400",
+                  "alt": "早餐"
+                }
+              },
+              {
+                "title": "午餐",
+                "description": "午间轻奢时光",
+                "meta": "11:30-14:00",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1547496502-affa22d38842?w=400",
+                  "alt": "午餐"
+                }
+              },
+              {
+                "title": "晚餐",
+                "description": "浪漫晚宴体验",
+                "meta": "17:30-22:00",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1550966871-3ed3cdb51f3a?w=400",
+                  "alt": "晚餐"
+                }
+              },
+              {
+                "title": "甜品",
+                "description": "甜蜜的完美句号",
+                "meta": "全天供应",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1567327613478-45e5f7b5b5f5?w=400",
+                  "alt": "甜品"
+                }
+              },
+              {
+                "title": "饮品",
+                "description": "精选手工调饮",
+                "meta": "全时段",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400",
+                  "alt": "饮品"
+                }
+              }
+            ]
+          },
+          "style": {
+            "background": "default",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "center",
+            "container": "contained"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-popular",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "热门推荐",
+          "props": {
+            "generatedModuleId": "generated-popular",
+            "intent": "popular dishes",
+            "layout": "feature-grid",
+            "title": "热门推荐",
+            "subtitle": "食客最爱，不容错过",
+            "items": [
+              {
+                "title": "松露烩饭",
+                "description": "意大利米，帕玛森芝士",
+                "value": "￥328",
+                "meta": "人气王",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400",
+                  "alt": "松露烩饭"
+                }
+              },
+              {
+                "title": "香煎鹅肝",
+                "description": "配无花果酱，松露泡沫",
+                "value": "￥388",
+                "meta": "必点菜",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400",
+                  "alt": "香煎鹅肝"
+                }
+              },
+              {
+                "title": "龙虾浓汤",
+                "description": "配干邑奶油，香草油",
+                "value": "￥268",
+                "meta": "好评如潮",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400",
+                  "alt": "龙虾浓汤"
+                }
+              },
+              {
+                "title": "澳洲和牛",
+                "description": "M9级，黑松露土豆泥",
+                "value": "￥688",
+                "meta": "招牌",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1544025162-d76694265947?w=400",
+                  "alt": "澳洲和牛"
+                }
+              }
+            ]
+          },
+          "style": {
+            "background": "muted",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "center",
+            "container": "contained"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-reviews",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "用户评价",
+          "props": {
+            "generatedModuleId": "generated-reviews",
+            "intent": "customer reviews",
+            "layout": "proof",
+            "title": "食客心声",
+            "subtitle": "来自美食家的真实评价",
+            "items": [
+              {
+                "title": "张女士",
+                "description": "环境优雅，每道菜都像艺术品。特别推荐龙虾浓汤，味道层次非常丰富。",
+                "meta": "★★★★★",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
+                  "alt": "张女士"
+                }
+              },
+              {
+                "title": "李先生",
+                "description": "主厨的创新菜令人惊艳，和牛的熟成度完美。一定会再来的。",
+                "meta": "★★★★★",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+                  "alt": "李先生"
+                }
+              },
+              {
+                "title": "陈小姐",
+                "description": "甜品造型太美了，味道也一级棒。非常适合约会。",
+                "meta": "★★★★☆",
+                "image": {
+                  "src": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
+                  "alt": "陈小姐"
+                }
+              }
+            ]
+          },
+          "style": {
+            "background": "default",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "center",
+            "container": "contained"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-reservation",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "预订区域",
+          "props": {
+            "generatedModuleId": "generated-reservation",
+            "intent": "book a table",
+            "layout": "conversion",
+            "title": "预订餐位",
+            "subtitle": "开启您的味觉之旅",
+            "description": "填写信息，我们为您预留最佳位置。",
+            "fields": [
+              "日期",
+              "人数",
+              "联系方式"
+            ]
+          },
+          "style": {
+            "background": "gradient",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "center",
+            "container": "narrow"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        },
+        {
+          "id": "block-footer",
+          "type": "aiGeneratedSection",
+          "variant": "generated",
+          "name": "Footer",
+          "props": {
+            "generatedModuleId": "generated-footer",
+            "intent": "footer",
+            "layout": "split-story",
+            "title": "联系我们",
+            "items": [
+              {
+                "title": "地址",
+                "description": "北京市朝阳区美食街88号"
+              },
+              {
+                "title": "营业时间",
+                "description": "周一至周日 11:00-22:00"
+              },
+              {
+                "title": "电话",
+                "description": "010-8888-8888"
+              },
+              {
+                "title": "社交媒体",
+                "description": "微博 | 微信 | Instagram"
+              }
+            ]
+          },
+          "style": {
+            "background": "primary",
+            "paddingTop": 88,
+            "paddingBottom": 88,
+            "textAlign": "left",
+            "container": "contained"
+          },
+          "visibility": {
+            "desktop": true,
+            "tablet": true,
+            "mobile": true
+          }
+        }
+      ],
+      "createdAt": "2025-03-25T10:00:00Z",
+      "updatedAt": "2025-03-25T10:00:00Z"
+    },
+    "createdAt": "2026-06-24T09:16:01.434Z",
+    "updatedAt": "2025-03-25T10:00:00Z"
+  },
+  {
+    "id": "dcb4d65f-542d-42a7-a520-b590c356b089",
+    "status": "DRAFT",
+    "document": {
+      "id": "dcb4d65f-542d-42a7-a520-b590c356b089",
+      "title": "未命名页面",
+      "description": "从空白画布开始编辑。",
+      "version": 1,
+      "siteMeta": {
+        "companyName": "未命名公司",
+        "industry": "自定义页面",
+        "targetAudience": "目标客户",
+        "pageGoal": "brand-display",
+        "seoTitle": "未命名页面",
+        "seoDescription": "从空白画布开始编辑。",
+        "keywords": [
+          "空白页面"
+        ]
+      },
+      "theme": {
+        "colorTokens": {
+          "primary": "#165DFF",
+          "primaryHover": "#0E42D2",
+          "secondary": "#14C9C9",
+          "accent": "#F7BA1E",
+          "background": "#FFFFFF",
+          "surface": "#FFFFFF",
+          "muted": "#F2F3F5",
+          "textPrimary": "#1D2129",
+          "textSecondary": "#4E5969",
+          "border": "#E5E6EB"
+        },
+        "typography": {
+          "fontFamily": "Noto Sans SC",
+          "headingWeight": 700,
+          "bodyWeight": 400,
+          "h1Size": "48px",
+          "h2Size": "40px",
+          "h3Size": "28px",
+          "bodySize": "16px"
+        },
+        "radius": {
+          "sm": "4px",
+          "md": "12px",
+          "lg": "16px",
+          "xl": "24px"
+        },
+        "shadow": {
+          "card": "0 1px 3px rgba(0, 0, 0, 0.08)",
+          "elevated": "0 8px 24px rgba(0, 0, 0, 0.12)",
+          "floating": "0 16px 48px rgba(0, 0, 0, 0.16)"
+        },
+        "spacing": {
+          "sectionY": "96px",
+          "containerX": "24px",
+          "blockGap": "32px"
+        }
+      },
+      "layout": {
+        "maxWidth": "1200px",
+        "contentDensity": "comfortable",
+        "responsiveMode": "enterprise"
+      },
+      "blocks": [],
+      "createdAt": "2026-06-24T17:46:23.688Z",
+      "updatedAt": "2026-06-24T17:46:23.688Z"
+    },
+    "createdAt": "2026-06-24T17:46:23.688Z",
+    "updatedAt": "2026-06-24T17:46:23.688Z"
+  },
+  {
+    "id": "7f80d9fb-fd10-4588-bda4-9e0d7604f67e",
+    "status": "DRAFT",
+    "document": {
+      "id": "7f80d9fb-fd10-4588-bda4-9e0d7604f67e",
+      "title": "未命名页面",
+      "description": "从空白画布开始编辑。",
+      "version": 1,
+      "siteMeta": {
+        "companyName": "未命名公司",
+        "industry": "自定义页面",
+        "targetAudience": "目标客户",
+        "pageGoal": "brand-display",
+        "seoTitle": "未命名页面",
+        "seoDescription": "从空白画布开始编辑。",
+        "keywords": [
+          "空白页面"
+        ]
+      },
+      "theme": {
+        "colorTokens": {
+          "primary": "#165DFF",
+          "primaryHover": "#0E42D2",
+          "secondary": "#14C9C9",
+          "accent": "#F7BA1E",
+          "background": "#FFFFFF",
+          "surface": "#FFFFFF",
+          "muted": "#F2F3F5",
+          "textPrimary": "#1D2129",
+          "textSecondary": "#4E5969",
+          "border": "#E5E6EB"
+        },
+        "typography": {
+          "fontFamily": "Noto Sans SC",
+          "headingWeight": 700,
+          "bodyWeight": 400,
+          "h1Size": "48px",
+          "h2Size": "40px",
+          "h3Size": "28px",
+          "bodySize": "16px"
+        },
+        "radius": {
+          "sm": "4px",
+          "md": "12px",
+          "lg": "16px",
+          "xl": "24px"
+        },
+        "shadow": {
+          "card": "0 1px 3px rgba(0, 0, 0, 0.08)",
+          "elevated": "0 8px 24px rgba(0, 0, 0, 0.12)",
+          "floating": "0 16px 48px rgba(0, 0, 0, 0.16)"
+        },
+        "spacing": {
+          "sectionY": "96px",
+          "containerX": "24px",
+          "blockGap": "32px"
+        }
+      },
+      "layout": {
+        "maxWidth": "1200px",
+        "contentDensity": "comfortable",
+        "responsiveMode": "enterprise"
+      },
+      "blocks": [],
+      "createdAt": "2026-06-25T03:30:03.791Z",
+      "updatedAt": "2026-06-25T03:30:03.791Z"
+    },
+    "createdAt": "2026-06-25T03:30:03.791Z",
+    "updatedAt": "2026-06-25T03:30:03.791Z"
+  }
+]

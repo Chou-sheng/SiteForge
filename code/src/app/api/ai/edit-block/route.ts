@@ -41,10 +41,6 @@ export async function POST(request: Request) {
       "x-ai-source": result.source,
     });
 
-    if (result.fallbackReason) {
-      headers.set("x-ai-fallback-reason", result.fallbackReason);
-    }
-
     return NextResponse.json({ block: result.block }, { headers });
   } catch {
     return errorResponse("编辑区块失败", 500);
