@@ -1,12 +1,130 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { generatePageWithAI, generatePageWithAIResult } from "../../src/lib/ai/generatePage";
-import { generateLocalPage } from "../../src/lib/ai/localGeneratePage";
 import { pageGenerationSystemPrompt } from "../../src/lib/ai/prompts";
 import { pageDocumentSchema } from "../../src/lib/validation/pageSchema";
+import type { EnterprisePageDocument, EnterpriseTheme } from "../../src/types/page";
 
 function serialized(value: unknown) {
   return JSON.stringify(value);
+}
+
+const theme: EnterpriseTheme = {
+  colorTokens: {
+    primary: "#3f2a1d",
+    primaryHover: "#2a1c13",
+    secondary: "#556b2f",
+    accent: "#8b1e3f",
+    background: "#fffaf0",
+    surface: "#ffffff",
+    muted: "#f6efe3",
+    textPrimary: "#1f1712",
+    textSecondary: "#695d52",
+    border: "#e5d8c7",
+  },
+  typography: {
+    fontFamily: "Inter, PingFang SC, Microsoft YaHei, sans-serif",
+    headingWeight: 700,
+    bodyWeight: 400,
+    h1Size: "56px",
+    h2Size: "36px",
+    h3Size: "24px",
+    bodySize: "16px",
+  },
+  radius: {
+    sm: "4px",
+    md: "8px",
+    lg: "12px",
+    xl: "16px",
+  },
+  shadow: {
+    card: "0 8px 28px rgba(31, 23, 18, 0.08)",
+    elevated: "0 18px 46px rgba(31, 23, 18, 0.12)",
+    floating: "0 24px 60px rgba(31, 23, 18, 0.16)",
+  },
+  spacing: {
+    sectionY: "88px",
+    containerX: "24px",
+    blockGap: "32px",
+  },
+};
+
+function aiDocument(overrides: Partial<EnterprisePageDocument> = {}): EnterprisePageDocument {
+  return {
+    id: "ai-page",
+    title: "雾屿高级美食网站首页",
+    description: "高级餐厅首页",
+    version: 1,
+    siteMeta: {
+      companyName: "雾屿料理",
+      industry: "高端餐饮",
+      targetAudience: "关注主厨菜单、私享餐位和酒水搭配的城市客人",
+      pageGoal: "event-conversion",
+      seoTitle: "雾屿料理高级美食网站首页",
+      seoDescription: "预约雾屿料理的当季主厨菜单与私享餐位。",
+      keywords: ["高级美食", "主厨菜单", "餐厅预约"],
+    },
+    theme,
+    layout: {
+      maxWidth: "1440px",
+      contentDensity: "spacious",
+      responsiveMode: "marketing",
+    },
+    blocks: [
+      {
+        id: "food-hero",
+        type: "aiGeneratedSection",
+        variant: "generated",
+        name: "餐厅首屏",
+        props: {
+          generatedModuleId: "generated-food-hero",
+          intent: "预约转化",
+          layout: "hero",
+          eyebrow: "Seasonal Fine Dining",
+          title: "以深红酒香开启一场城市晚餐",
+          description: "雾屿料理用当季食材、开放厨房和克制留白营造高级餐饮体验。",
+          image: {
+            src: "/template-assets/travel-food.jpg",
+            alt: "Seasonal fine dining table",
+          },
+          items: [
+            { title: "主厨菜单", description: "随季节更换的六道式品鉴菜单。" },
+            { title: "酒水搭配", description: "以深红、咖啡与木质香气组织餐酒线索。" },
+          ],
+        },
+        style: {
+          background: "default",
+          paddingTop: 96,
+          paddingBottom: 96,
+          textAlign: "left",
+          container: "contained",
+        },
+        visibility: {
+          desktop: true,
+          tablet: true,
+          mobile: true,
+        },
+      },
+    ],
+    createdAt: "2026-06-17T00:00:00.000Z",
+    updatedAt: "2026-06-17T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function mockDeepSeekDocument(document: unknown) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(JSON.stringify({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify(document),
+          },
+        },
+      ],
+    }), { status: 200, headers: { "Content-Type": "application/json" } })),
+  );
 }
 
 describe("generatePageWithAI", () => {
@@ -15,29 +133,16 @@ describe("generatePageWithAI", () => {
     vi.restoreAllMocks();
   });
 
-  test("returns a valid Chinese EnterprisePageDocument from local fallback when no DeepSeek key is configured", async () => {
+  test("fails instead of using local generation when no DeepSeek key is configured", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "");
 
-    const document = await generatePageWithAI({
-      prompt: "为星澜智能生成一个 AI 产品官网，突出销售自动化和私有化部署",
+    await expect(generatePageWithAI({
+      prompt: "为星澜智能生成一个 AI 产品官网",
       industry: "人工智能",
-      style: "科技蓝",
-      pageType: "AI 产品官网",
-    });
-
-    expect(pageDocumentSchema.safeParse(document).success).toBe(true);
-    expect(serialized(document)).toMatch(/[\u4e00-\u9fff]/);
-    expect(document.blocks.length).toBeGreaterThan(0);
-
-    const forbidden = serialized(document);
-    expect(forbidden).not.toMatch(/<html|<\/|```|markdown|score|rating|evaluation/i);
-    expect(document).not.toHaveProperty("html");
-    expect(document).not.toHaveProperty("score");
-    expect(document).not.toHaveProperty("rating");
-    expect(document).not.toHaveProperty("evaluation");
+    })).rejects.toThrow("DeepSeek API Key 未配置");
   });
 
-  test("falls back to local generation when the DeepSeek request times out", async () => {
+  test("fails instead of using local generation when the DeepSeek request times out", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
     vi.stubEnv("DEEPSEEK_TIMEOUT_MS", "1");
     const fetchMock = vi.fn(
@@ -48,34 +153,32 @@ describe("generatePageWithAI", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const document = await generatePageWithAI({
+    await expect(generatePageWithAI({
       prompt: "为智能制造企业生成一页官网",
       industry: "智能制造",
       pageType: "企业官网",
-    });
-
+    })).rejects.toThrow("DeepSeek 页面生成请求失败");
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(pageDocumentSchema.safeParse(document).success).toBe(true);
-    expect(serialized(document)).toMatch(/[\u4e00-\u9fff]/);
   }, 1000);
 
   test("sends DeepSeek JSON mode instructions with a token budget", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
     vi.stubEnv("DEEPSEEK_MODEL", "deepseek-test");
     vi.stubEnv("DEEPSEEK_MAX_TOKENS", "2048");
-    const aiDocument = generateLocalPage({
-      prompt: "为智能制造企业生成一页官网",
-      industry: "智能制造",
-    });
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
-      choices: [
-        {
-          message: {
-            content: JSON.stringify(aiDocument),
+    const fetchMock = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => {
+      void _url;
+      void _init;
+
+      return new Response(JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify(aiDocument()),
+            },
           },
-        },
-      ],
-    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+        ],
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     await generatePageWithAI({
@@ -84,53 +187,48 @@ describe("generatePageWithAI", () => {
       pageType: "企业官网",
     });
 
-    const requestBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    const requestInit = fetchMock.mock.calls[0]?.[1];
+    const requestBody = JSON.parse(String(requestInit?.body));
 
     expect(requestBody.model).toBe("deepseek-test");
     expect(requestBody.max_tokens).toBe(2048);
     expect(requestBody.response_format).toEqual({ type: "json_object" });
     expect(requestBody.messages[0].content).toMatch(/json/i);
+    expect(requestBody.messages[0].content).toContain("design-taste-frontend");
+    expect(requestBody.messages[0].content).toContain("No wireframe-like numbered cards");
   });
 
   test("normalizes usable DeepSeek page output that is missing required editor fields", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
     vi.stubEnv("DEEPSEEK_MODEL", "deepseek-test");
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response(JSON.stringify({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                id: "ai-page",
-                title: "AI 物流官网",
-                description: "AI 返回的页面",
-                version: 1,
-                siteMeta: {
-                  title: "错误字段标题",
-                  description: "错误字段描述",
-                },
-                theme: generateLocalPage({ prompt: "物流官网", industry: "物流服务" }).theme,
-                layout: { maxWidth: "1280px" },
-                blocks: [
-                  {
-                    id: "ai-hero",
-                    type: "hero",
-                    variant: "centered",
-                    name: "AI 首屏",
-                    props: {
-                      title: "AI 生成的首屏标题",
-                    },
-                  },
-                ],
-                createdAt: "2026-06-17T00:00:00.000Z",
-                updatedAt: "2026-06-17T00:00:00.000Z",
-              }),
-            },
+    mockDeepSeekDocument({
+      id: "ai-page",
+      title: "AI 物流官网",
+      description: "AI 返回的页面",
+      version: 1,
+      siteMeta: {
+        title: "错误字段标题",
+        description: "错误字段描述",
+      },
+      theme,
+      layout: { maxWidth: "1280px" },
+      blocks: [
+        {
+          id: "ai-hero",
+          type: "aiGeneratedSection",
+          variant: "generated",
+          name: "AI 生成首屏",
+          props: {
+            generatedModuleId: "generated-hero",
+            intent: "首屏转化",
+            layout: "hero",
+            title: "AI 生成的首屏标题",
           },
-        ],
-      }), { status: 200, headers: { "Content-Type": "application/json" } })),
-    );
+        },
+      ],
+      createdAt: "2026-06-17T00:00:00.000Z",
+      updatedAt: "2026-06-17T00:00:00.000Z",
+    });
 
     const result = await generatePageWithAIResult({
       prompt: "生成一个物流服务公司官网",
@@ -148,9 +246,107 @@ describe("generatePageWithAI", () => {
       mobile: true,
     });
     expect(result.document.blocks[0].props.title).toBe("AI 生成的首屏标题");
+    expect(result.document.blocks[0].props.generatedModuleId).toBe("generated-hero");
   });
 
-  test("tells DeepSeek the exact page and block schema needed to pass validation", () => {
+  test("keeps useful AI generated section copy when layout values need repair", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
+    vi.stubEnv("DEEPSEEK_MODEL", "deepseek-test");
+    mockDeepSeekDocument(aiDocument({
+      blocks: [
+        {
+          ...aiDocument().blocks[0],
+          props: {
+            ...aiDocument().blocks[0].props,
+            layout: "left-right-feature",
+          },
+        },
+      ],
+    }));
+
+    const result = await generatePageWithAIResult({
+      prompt: "高级美食网站首页，使用高级排版和大面积留白，色彩以奶油白、深棕、橄榄绿、酒红为主",
+      industry: "高端餐饮",
+      pageType: "event-conversion",
+    });
+
+    const firstBlock = result.document.blocks[0];
+
+    expect(result.source).toBe("deepseek");
+    expect(firstBlock.type).toBe("aiGeneratedSection");
+    expect(firstBlock.props.layout).toBe("split-story");
+    expect(firstBlock.props.title).toBe("以深红酒香开启一场城市晚餐");
+    expect(firstBlock.props.description).toContain("雾屿料理");
+    expect(serialized(firstBlock)).not.toContain("按当前页面需求生成的新模块");
+    expect(serialized(firstBlock)).not.toContain("模块库");
+  });
+
+  test("rejects visible helper copy from low-quality AI page output", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
+    mockDeepSeekDocument(aiDocument({
+      blocks: [
+        {
+          ...aiDocument().blocks[0],
+          props: {
+            ...aiDocument().blocks[0].props,
+            title: "AI Generated",
+            description: "This should never be visible page copy.",
+          },
+        },
+      ],
+    }));
+
+    await expect(generatePageWithAIResult({
+      prompt: "高级美食网站首页",
+      industry: "高端餐饮",
+      pageType: "event-conversion",
+    })).rejects.toThrow("design-taste");
+  });
+
+  test("rejects food dish grids that have no matched photography or prices", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
+    const baseBlock = aiDocument().blocks[0];
+
+    mockDeepSeekDocument(aiDocument({
+      blocks: [
+        {
+          ...baseBlock,
+          id: "bad-dishes",
+          name: "Signature dishes",
+          props: {
+            generatedModuleId: "generated-bad-dishes",
+            intent: "signature dishes",
+            layout: "feature-grid",
+            title: "Signature dishes",
+            items: [
+              { title: "Truffle rice", description: "Seasonal special" },
+              { title: "Roasted duck liver", description: "Chef favorite" },
+              { title: "Lobster soup", description: "Popular dish" },
+              { title: "Wagyu steak", description: "Dinner signature" },
+            ],
+          },
+        },
+      ],
+    }));
+
+    await expect(generatePageWithAIResult({
+      prompt: "高级美食网站首页",
+      industry: "高端餐饮",
+      pageType: "event-conversion",
+    })).rejects.toThrow("design-taste");
+  });
+
+  test("fails when DeepSeek returns no valid generated sections", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
+    mockDeepSeekDocument(aiDocument({ blocks: [] }));
+
+    await expect(generatePageWithAIResult({
+      prompt: "高级美食网站首页",
+      industry: "高端餐饮",
+    })).rejects.toThrow("DeepSeek 页面生成结果无效");
+  });
+
+  test("tells DeepSeek to generate page-scoped modules instead of selecting module-library families", () => {
     expect(pageGenerationSystemPrompt).toContain("siteMeta.companyName");
     expect(pageGenerationSystemPrompt).toContain("siteMeta.seoDescription");
     expect(pageGenerationSystemPrompt).toContain("layout.maxWidth");
@@ -158,9 +354,10 @@ describe("generatePageWithAI", () => {
     expect(pageGenerationSystemPrompt).toContain("block.visibility");
     expect(pageGenerationSystemPrompt).toContain("href");
     expect(pageGenerationSystemPrompt).toContain("Do not invent unrelated industries");
-    expect(pageGenerationSystemPrompt).toContain("AI 产品官网");
-    expect(pageGenerationSystemPrompt).toContain("教育机构官网");
-    expect(pageGenerationSystemPrompt).toContain("文旅度假官网");
-    expect(pageGenerationSystemPrompt).toContain("不要混用模块家族");
+    expect(pageGenerationSystemPrompt).toContain("aiGeneratedSection");
+    expect(pageGenerationSystemPrompt).toContain("generatedModuleId");
+    expect(pageGenerationSystemPrompt).toContain("page-scoped");
+    expect(pageGenerationSystemPrompt).toContain("不要从模块库选择");
+    expect(pageGenerationSystemPrompt).not.toContain("只能使用已注册模块类型");
   });
 });

@@ -393,7 +393,7 @@ describe("EditorShell", () => {
 
   test("marks AI generated pages dirty and saves generated content", async () => {
     const originalDocument = createDocument([createDefaultBlock("hero")]);
-    const generatedBlock = createDefaultBlock("cta");
+    const generatedBlock = createDefaultBlock("aiGeneratedSection");
     const generatedDocument = createDocument([generatedBlock]);
     const fetchMock = vi
       .fn()
@@ -437,18 +437,12 @@ describe("EditorShell", () => {
     expect(savedDocument.blocks[0].id).toBe(generatedBlock.id);
   });
 
-  test("keeps AI provider and fallback details out of user-facing status", async () => {
+  test("reports failure when AI page generation endpoint fails", async () => {
     const originalDocument = createDocument([createDefaultBlock("hero")]);
-    const generatedDocument = createDocument([createDefaultBlock("cta")]);
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse(createRecord(originalDocument)))
-      .mockResolvedValueOnce(jsonResponse(generatedDocument, {
-        headers: {
-          "x-ai-source": "local-fallback",
-          "x-ai-fallback-reason": "missing-api-key",
-        },
-      }));
+      .mockResolvedValueOnce(jsonResponse({ error: "生成页面失败" }, { status: 500 }));
 
     vi.stubGlobal("fetch", fetchMock);
 
@@ -461,8 +455,8 @@ describe("EditorShell", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "生成页面" }));
 
-    expect(await screen.findAllByText("页面已生成")).not.toHaveLength(0);
-    expect(screen.queryByText(/DeepSeek|本地兜底/)).toBeNull();
+    expect(await screen.findByText("页面生成失败，请稍后重试")).toBeTruthy();
+    expect(screen.queryByText("页面已生成")).toBeNull();
   });
 
   test("top toolbar AI generate action focuses the page prompt input", async () => {

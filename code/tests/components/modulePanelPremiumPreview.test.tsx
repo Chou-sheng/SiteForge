@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { ModulePanel } from "../../src/components/editor/ModulePanel";
-import { getBlockDefinition } from "../../src/modules/registry";
+import { getBlockDefinition, runtimeOnlyBlockTypes } from "../../src/modules/registry";
 
 afterEach(() => {
   cleanup();
@@ -69,5 +69,13 @@ describe("ModulePanel premium preview", () => {
     const preview = screen.getByTestId("module-variant-preview");
 
     expect(preview.parentElement).toBe(document.body);
+  });
+
+  test("does not expose runtime-only AI generated sections in the module library", () => {
+    render(<ModulePanel onAddBlock={vi.fn()} />);
+
+    expect(runtimeOnlyBlockTypes).toContain("aiGeneratedSection");
+    expect(screen.queryByRole("button", { name: /aiGeneratedSection/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /AI 生成模块/ })).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 import { createId } from "../lib/utils/id";
 import { pageBlockSchema } from "../lib/validation/pageSchema";
 import aboutBlock from "./about";
+import aiGeneratedSectionBlock from "./ai-generated-section";
 import announcementBarBlock from "./announcement-bar";
 import animatedMetricsBlock from "./animated-metrics";
 import audienceGridBlock from "./audience-grid";
@@ -107,8 +108,11 @@ export const blockRegistry = {
   spatialProof: spatialProofBlock,
   atelierInquiry: atelierInquiryBlock,
   atelierFooter: atelierFooterBlock,
+  aiGeneratedSection: aiGeneratedSectionBlock,
   footer: footerBlock,
 } satisfies Record<BlockType, BlockDefinition>;
+
+export const runtimeOnlyBlockTypes = ["aiGeneratedSection"] as const satisfies readonly BlockType[];
 
 export type BlockCategoryGroup = {
   id: BlockCategory;

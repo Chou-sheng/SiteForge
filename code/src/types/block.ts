@@ -53,6 +53,7 @@ export const blockTypes = [
   "spatialProof",
   "atelierInquiry",
   "atelierFooter",
+  "aiGeneratedSection",
   "footer",
 ] as const;
 

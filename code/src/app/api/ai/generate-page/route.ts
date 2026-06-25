@@ -33,10 +33,6 @@ export async function POST(request: Request) {
       "x-ai-source": result.source,
     });
 
-    if (result.fallbackReason) {
-      headers.set("x-ai-fallback-reason", result.fallbackReason);
-    }
-
     return NextResponse.json(result.document, { headers });
   } catch {
     return errorResponse("生成页面失败", 500);

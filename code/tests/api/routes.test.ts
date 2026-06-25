@@ -124,7 +124,7 @@ describe("API routes", () => {
       document: { title: "AI 教育平台企业官网" },
     });
 
-    const summariesResponse = await list(request("/api/pages"));
+    const summariesResponse = await list();
     const summaries = (await summariesResponse.json()) as unknown[];
 
     expect(summariesResponse.status).toBe(200);
@@ -284,8 +284,57 @@ describe("API routes", () => {
   });
 
   test("generates a page and edits a block for valid AI route requests", async () => {
-    vi.stubEnv("DEEPSEEK_API_KEY", "");
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
     const block = createDefaultBlock("hero");
+    const generatedBlock = {
+      ...createDefaultBlock("aiGeneratedSection"),
+      id: "generated-manufacturing-hero",
+      name: "智能制造首屏",
+      props: {
+        generatedModuleId: "generated-manufacturing-hero",
+        intent: "官网线索转化",
+        layout: "hero",
+        eyebrow: "Smart Manufacturing",
+        title: "让智能制造线索更快进入销售流程",
+        description: "用设备能力、交付案例和预约演示入口承接制造业客户的采购判断。",
+      },
+    };
+    const generatedDocument = createDocument({
+      id: "ai-route-generated-page",
+      title: "智能制造企业官网",
+      siteMeta: {
+        ...createDocument().siteMeta,
+        industry: "智能制造",
+      },
+      blocks: [generatedBlock],
+    });
+    const editedBlock = {
+      ...block,
+      props: {
+        ...block.props,
+        title: "预约演示智能制造解决方案",
+      },
+    };
+    const fetchMock = vi.fn();
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify(generatedDocument),
+          },
+        },
+      ],
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify(editedBlock),
+          },
+        },
+      ],
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
 
     const generatedResponse = await generatePage(
       request("/api/ai/generate-page", {
@@ -321,7 +370,7 @@ describe("API routes", () => {
     vi.stubEnv("DEEPSEEK_MODEL", "deepseek-test");
     const aiDocument = createDocument({
       id: "ai-generated-page",
-      blocks: [createDefaultBlock("hero")],
+      blocks: [createDefaultBlock("aiGeneratedSection")],
     });
 
     vi.stubGlobal(
@@ -349,7 +398,7 @@ describe("API routes", () => {
     expect(pageDocumentSchema.safeParse(generated).success).toBe(true);
   });
 
-  test("marks generated pages as local fallback when DeepSeek is not configured", async () => {
+  test("fails page generation when DeepSeek is not configured", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "");
 
     const response = await generatePage(request("/api/ai/generate-page", {
@@ -357,9 +406,11 @@ describe("API routes", () => {
       industry: "智能制造",
     }));
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("x-ai-source")).toBe("local-fallback");
-    expect(response.headers.get("x-ai-fallback-reason")).toBe("missing-api-key");
-    expect(pageDocumentSchema.safeParse(await response.json()).success).toBe(true);
+    expect(response.status).toBe(500);
+    expect(response.headers.get("x-ai-source")).toBeNull();
+    expect(response.headers.get("x-ai-fallback-reason")).toBeNull();
+    await expect(response.json()).resolves.toMatchObject({
+      error: "生成页面失败",
+    });
   });
 });

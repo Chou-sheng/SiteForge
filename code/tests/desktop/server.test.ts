@@ -10,7 +10,7 @@ import {
 describe("desktop Next.js server", () => {
   it("creates an isolated loopback-only environment", () => {
     const environment = createServerEnvironment({
-      baseEnvironment: { PATH: "test-path" },
+      baseEnvironment: { NODE_ENV: "test", PATH: "test-path" },
       port: 43125,
       token: "session-token",
       dataDirectory: "D:\\UserData",
