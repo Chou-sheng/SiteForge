@@ -1,84 +1,76 @@
-# SiteForge
+# 站点工坊 SiteForge
 
-SiteForge 是一个本地运行的网站生成、可视化编辑和静态发布工具。当前仓库只包含源码目录 `code/`，不包含已经打包好的桌面程序或发布产物。
+站点工坊 SiteForge 是一款 Windows 本地网站生成、可视化编辑与静态发布工具。程序提供页面工作台、页面管理、模板中心、可视化编辑器、AI 页面生成、AI 区块修改、响应式预览、HTML 导出和静态站点发布能力。
 
-项目基于 Next.js、React、Tailwind CSS 和 Electron。Web 开发模式可以直接在浏览器里运行；桌面打包后会启动本机 Next.js 服务，并通过 Electron 窗口加载编辑器。
+发行版本采用文件夹形式交付。完整的 `SiteForge/` 目录包含主程序、运行资源、用户说明、示例配置和第三方组件说明。
 
-## 主要功能
-
-- 页面管理：新建、重命名、复制、删除页面，并查看草稿或发布状态。
-- 模板中心：从内置模板创建页面，支持模板搜索、分类筛选和预览。
-- 可视化编辑：添加模块、选择区块、修改属性、撤销和重做。
-- 响应式预览：在独立预览页查看最终页面效果。
-- AI 页面生成：根据提示词生成完整页面，优先使用 DeepSeek API；页面区块会作为当前页面专属的新模块生成，而不是从模块库中挑选现成模块。
-- AI 区块修改：根据指令修改当前选中的区块。
-- AI 设计质量控制：页面生成和区块修改都会注入 `design-taste-frontend` 风格规则，约束排版、图片、响应式和行业视觉一致性。
-- AI 失败处理：没有 API Key、AI 请求失败或返回无效结构时，页面生成和区块修改会直接失败，不使用本地兜底生成。
-- HTML 导出：在浏览器中导出单个 HTML 文件。
-- 桌面静态发布：在 Electron 桌面版中选择目录，生成可部署的静态站点文件夹。
-
-## 技术栈
-
-- Next.js 15
-- React 19
-- TypeScript
-- Tailwind CSS
-- Zustand
-- Zod
-- Electron
-- Vitest
-- ESLint
-
-## 目录结构
+## 目录内容
 
 ```text
-code/
-  data/                  # Web 开发模式下的页面数据
-  desktop/               # Electron 主进程、预加载脚本和本地服务启动逻辑
-  public/                # 模板图片和静态运行时资源
-  scripts/               # 静态运行时构建、桌面打包准备和发布目录整理脚本
-  src/
-    app/                 # Next.js App Router 页面和 API
-    components/          # 通用组件、编辑器组件和页面渲染组件
-    lib/                 # AI、design-taste、数据存储、导出、发布、模板和校验逻辑
-    modules/             # 页面区块模块和区块注册表
-    store/               # 编辑器状态
-    types/               # 页面和区块类型
-  tests/                 # Vitest 测试
+SiteForge/
+  SiteForge.exe
+  resources/
+  README.md
+  config.example.env
+  VERSION.txt
+  THIRD_PARTY_NOTICES.txt
 ```
 
-## 环境要求
+- `SiteForge.exe`：桌面主程序。
+- `resources/`：Electron 与本地 Next.js 服务运行资源。
+- `README.md`：使用、配置、发布和数据位置说明。
+- `config.example.env`：DeepSeek API 配置示例。
+- `VERSION.txt`：版本、平台和目录信息。
+- `THIRD_PARTY_NOTICES.txt`：第三方组件说明。
 
-- Node.js 20 或更高版本
-- pnpm
-- Windows 系统用于桌面版打包和运行
+## 系统要求
 
-如果本机没有 pnpm，可以先启用 Corepack：
+- Windows 10 或 Windows 11，64 位。
+- 建议至少 8 GB 内存。
+- AI 页面生成和 AI 区块修改需要可访问 DeepSeek API 的网络环境。
+- 模板、编辑、保存、预览、HTML 导出和静态发布可在未配置 API Key 的状态下使用。
 
-```powershell
-corepack enable
+## 启动
+
+1. 解压完整的 `SiteForge/` 文件夹。
+2. 双击 `SiteForge.exe`。
+3. 首次启动会在本机用户数据目录创建页面、配置和日志目录。
+
+程序只在本机 `127.0.0.1` 启动内部服务。关闭程序后，内部服务随程序退出。
+
+## 首页入口
+
+首页提供三个主要入口：
+
+- 页面管理：查看草稿、发布状态和更新时间，继续编辑、复制、重命名或删除页面。
+- 模板中心：搜索、筛选和预览整页模板，并从模板创建页面。
+- AI 配置：填写 DeepSeek API Key 和模型名称，保存前会真实调用一次 DeepSeek 接口完成校验。
+
+页面管理顶部提供“返回首页”按钮，可回到首页入口。
+
+## DeepSeek API 配置
+
+首页的“AI 配置”按钮会打开配置弹窗。弹窗包含：
+
+- API Key 输入框。
+- 模型名称输入框。
+- “校验并保存”按钮。
+- 校验中的等待提示。
+- 校验成功或失败提示。
+
+保存流程为：
+
+1. 使用输入的 API Key 和模型名称请求 DeepSeek `chat/completions`。
+2. DeepSeek 返回有效结果后写入本机配置。
+3. 程序提示重新打开应用后生效。
+
+配置文件位置：
+
+```text
+%APPDATA%/SiteForge/config/config.env
 ```
 
-## 安装依赖
-
-在仓库根目录进入 `code/`：
-
-```powershell
-cd code
-pnpm install
-```
-
-## 配置 AI 功能
-
-AI 功能读取 DeepSeek 相关环境变量。Web 开发模式可以在 `code/.env.local` 中配置；桌面打包版本首次运行时会把 `config.example.env` 复制到用户数据目录。
-
-Web 开发模式示例：
-
-```powershell
-Copy-Item config.example.env .env.local
-```
-
-然后编辑 `.env.local`：
+配置内容格式：
 
 ```dotenv
 DEEPSEEK_API_KEY=replace-with-your-key
@@ -87,106 +79,18 @@ DEEPSEEK_TIMEOUT_MS=120000
 DEEPSEEK_MAX_TOKENS=8192
 ```
 
-说明：
+字段说明：
 
-- `DEEPSEEK_API_KEY`：DeepSeek API Key。不要提交真实 Key。
-- `DEEPSEEK_MODEL`：请求使用的模型名。
+- `DEEPSEEK_API_KEY`：DeepSeek API Key。
+- `DEEPSEEK_MODEL`：请求使用的模型名称。
 - `DEEPSEEK_TIMEOUT_MS`：单次请求超时时间，单位毫秒。
-- `DEEPSEEK_MAX_TOKENS`：单次请求允许的最大输出 token 数。
+- `DEEPSEEK_MAX_TOKENS`：单次生成允许的最大输出 Token 数。
 
-没有配置 API Key 时，程序仍可运行，但 AI 页面生成和区块修改会失败并提示，不会使用本地兜底逻辑。
+保存配置后，完全退出并重新启动程序。桌面版在启动内部服务时读取配置。
 
-### AI 页面生成行为
+## 页面数据、配置和日志
 
-AI 页面生成不会把模块库作为可选模块集合来拼装页面。生成页面时，系统会创建 `aiGeneratedSection` 这类页面级承载区块，并把真正的新模块结构、文案、布局、指标、行动按钮和风格说明保存在该区块的 `props` 中。
-
-这些生成模块只属于当前页面：可以继续编辑、保存、导出和发布，但不会写入公共模块库，也不会出现在编辑器左侧的模块面板中。这样可以避免混用旧模板或不同模块家族造成风格割裂。
-
-### design-taste 规则
-
-AI 请求会通过 `src/lib/ai/designTaste.ts` 追加一组从 `design-taste-frontend` 提炼的运行时规则。它不会在运行时读取本机 skill 文件，也不会把 skill 全文塞进 prompt，而是固定注入适合产品生成链路的审美规则：
-
-- 避免线框式编号卡片、可见调试文案、模块库说明和重复布局。
-- 强制关注首屏、图片、留白、响应式、表单不溢出和整体风格节奏。
-- 对美食、餐厅、私厨、料理博客等页面启用餐饮编辑感规则，要求菜品图片、价格、标签、预订区和页脚内容完整。
-- AI 返回结果会经过结构校验和 design-taste 质量门禁；未通过时直接失败，不写入页面，也不走本地兜底。
-- `aiGeneratedSection` 渲染器不会用本地默认美食图补齐缺失图片，避免把不合格 AI 输出伪装成可用页面。
-
-## 运行 Web 开发模式
-
-```powershell
-cd code
-pnpm dev
-```
-
-启动后打开：
-
-```text
-http://localhost:3000
-```
-
-常用入口：
-
-- `/`：首页入口
-- `/dashboard`：页面管理
-- `/templates`：模板中心
-- `/editor/[pageId]`：页面编辑器
-- `/preview/[pageId]`：页面预览
-
-Web 开发模式下，页面数据默认保存到：
-
-```text
-code/data/pages.json
-```
-
-## 生产 Web 运行
-
-先构建：
-
-```powershell
-cd code
-pnpm build
-```
-
-再启动生产服务：
-
-```powershell
-pnpm start
-```
-
-默认同样通过浏览器访问本地服务。
-
-## 桌面版打包
-
-桌面版打包命令：
-
-```powershell
-cd code
-pnpm desktop:package
-```
-
-这个命令会依次执行：
-
-- 构建静态站点运行时资源
-- 构建 Next.js standalone 服务
-- 编译 Electron 主进程
-- 准备 `desktop-build/`
-- 使用 electron-builder 生成 Windows 文件夹版应用
-- 整理最终输出目录
-
-打包完成后的输出目录：
-
-```text
-code/release/SiteForge/
-```
-
-运行桌面版：
-
-```powershell
-code/release/SiteForge/SiteForge.exe
-```
-
-桌面版运行时会在本机用户数据目录保存页面、配置和日志：
+默认用户数据目录：
 
 ```text
 %APPDATA%/SiteForge/
@@ -195,49 +99,81 @@ code/release/SiteForge/SiteForge.exe
   logs/app.log
 ```
 
-桌面版的“发布”功能会让用户选择一个父目录，然后生成包含 `index.html` 和 `assets/` 的静态站点文件夹。Web 开发模式没有 Electron 的文件选择能力，因此静态发布按钮只在桌面版中可用。
+- `data/pages.json`：用户创建的页面、草稿和发布状态。
+- `config/config.env`：用户的 DeepSeek API 配置。
+- `logs/app.log`：桌面程序和内部服务日志。
 
-## 导出 HTML
+这些数据存放在系统用户数据目录。更换或更新程序文件夹时，已创建的页面和配置仍保留在本机用户数据目录中。
 
-编辑器中的 HTML 导出功能会生成一个单文件 HTML，适合本地查看、发送或归档。该功能不依赖桌面版。
+## 主要功能
 
-## 测试和检查
+- 模板中心：提供企业官网、AI 产品官网、教育机构官网、文旅度假官网和建筑空间官网等模板。
+- 页面管理：展示页面名称、行业、状态和更新时间，支持继续编辑、复制、重命名和删除。
+- 可视化编辑器：添加、选择、组合和调整页面区块。
+- 属性面板：编辑文字、图片、按钮、颜色、布局和显示状态。
+- AI 页面生成：根据提示词生成完整页面草稿。
+- AI 区块修改：根据指令修改当前区块，并保持页面整体风格一致。
+- 响应式预览：查看桌面、平板和移动端页面效果。
+- HTML 导出：生成可独立打开的单文件 HTML。
+- 静态站点发布：生成包含 `index.html` 和 `assets/` 的静态站点目录。
 
-运行测试：
+## AI 生成质量规则
 
-```powershell
-cd code
-pnpm test
-```
+AI 页面生成会创建 `aiGeneratedSection` 页面级承载区块。生成区块属于当前页面，可继续编辑、保存、导出和发布。
 
-监听模式运行测试：
+页面生成和区块修改会注入设计质量规则，约束排版、留白、图片、响应式布局和行业视觉一致性。AI 返回内容需要通过结构校验和设计质量校验后才会写入页面。
 
-```powershell
-pnpm test:watch
-```
+## 静态站点发布
 
-运行 ESLint：
-
-```powershell
-pnpm lint
-```
-
-## 常用脚本
+在编辑器中点击发布后，程序会在用户选择的位置生成静态站点目录。典型结构：
 
 ```text
-pnpm dev                 # 开发模式运行 Next.js
-pnpm build               # 构建生产版本
-pnpm start               # 启动生产 Next.js 服务
-pnpm test                # 运行测试
-pnpm test:watch          # 监听模式运行测试
-pnpm lint                # 运行 ESLint
-pnpm desktop:compile     # 编译 Electron 主进程
-pnpm desktop:package     # 打包 Windows 桌面文件夹版应用
-pnpm static-runtime:build # 构建静态站点运行时资源
+selected-folder/
+  page-name/
+    index.html
+    assets/
+      renderer.js
+      style.css
+      image-xxxx.jpg
 ```
 
-## 注意事项
+发布结果可直接打开 `index.html` 预览，也可上传到 Nginx、Apache、OSS、Vercel、Netlify 等静态托管环境。发布页面使用与程序预览相同的页面渲染器。
 
-- 不要提交 `.env.local`、真实 API Key、`node_modules/`、`.next/`、`desktop-build/` 或 `release/`。
-- 当前仓库只需要上传 `code/` 源码，不需要上传 `demo/`、打包后的 exe 或 release 产物。
-- 如果修改了页面渲染或静态发布逻辑，建议同时运行 `pnpm test` 和 `pnpm build`。
+## HTML 导出
+
+HTML 导出会生成单个 HTML 文件，适合快速发送、归档或本地查看。静态站点发布生成完整目录结构，更适合长期部署。
+
+## 备份、恢复和迁移
+
+页面、配置和日志位于 `%APPDATA%/SiteForge/`。备份该目录即可保留页面草稿、发布状态和 API 配置。
+
+恢复时，将备份内容放回 `%APPDATA%/SiteForge/`，再启动程序。迁移到其他电脑时，程序文件夹 `SiteForge/` 和用户数据备份分别复制到新电脑对应位置。
+
+## 常见问题
+
+### 双击 exe 没有窗口
+
+- 程序需要完整的 `SiteForge/` 文件夹结构。
+- 日志位置为 `%APPDATA%/SiteForge/logs/app.log`。
+- Windows SmartScreen 可能显示发布者提示，确认后可继续运行。
+
+### 智能功能失败
+
+- 首页“AI 配置”可校验 API Key 和模型名称。
+- 配置文件位置为 `%APPDATA%/SiteForge/config/config.env`。
+- 网络连接、账号额度、模型权限和 DeepSeek 服务状态都会影响智能功能。
+- 配置变更在重新打开应用后生效。
+
+### 发布页面样式或图片异常
+
+- 发布目录包含 `index.html` 和 `assets/`。
+- 图片资源会复制到 `assets/` 并使用相对路径引用。
+- 部署到子路径时，保持发布目录内部结构即可。
+
+## 最短使用流程
+
+1. 解压完整 `SiteForge/` 文件夹。
+2. 双击 `SiteForge.exe`。
+3. 在首页进入模板中心或页面管理。
+4. 使用智能功能时，在首页打开“AI 配置”，校验并保存 API Key 与模型名称。
+5. 重新打开应用后使用 AI 页面生成或 AI 区块修改。
