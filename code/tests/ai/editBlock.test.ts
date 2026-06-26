@@ -73,7 +73,7 @@ describe("editBlockWithAI", () => {
     const requestBody = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
 
     expect(requestBody.messages[0].content).toContain("design-taste-frontend");
-    expect(requestBody.messages[0].content).toContain("No wireframe-like numbered cards");
+    expect(requestBody.messages[0].content).toContain("Avoid wireframe-like numbered cards");
   });
 
   test("rejects invalid AI block type or schema instead of falling back", async () => {

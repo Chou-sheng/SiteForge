@@ -1028,6 +1028,9 @@ video {
 .w-8 {
   width: 2rem;
 }
+.w-9 {
+  width: 2.25rem;
+}
 .w-\[1200px\] {
   width: 1200px;
 }
@@ -1118,6 +1121,9 @@ video {
 }
 .max-w-full {
   max-width: 100%;
+}
+.max-w-lg {
+  max-width: 32rem;
 }
 .max-w-md {
   max-width: 28rem;
@@ -1298,6 +1304,11 @@ video {
   --tw-space-y-reverse: 0;
   margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+}
+.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
 }
 .space-y-5 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
@@ -1700,6 +1711,9 @@ video {
 .bg-slate-950 {
   --tw-bg-opacity: 1;
   background-color: rgb(2 6 23 / var(--tw-bg-opacity, 1));
+}
+.bg-slate-950\/35 {
+  background-color: rgb(2 6 23 / 0.35);
 }
 .bg-slate-950\/70 {
   background-color: rgb(2 6 23 / 0.7);
@@ -2364,6 +2378,10 @@ video {
   --tw-text-opacity: 1;
   color: rgb(190 18 60 / var(--tw-text-opacity, 1));
 }
+.text-rose-800 {
+  --tw-text-opacity: 1;
+  color: rgb(159 18 57 / var(--tw-text-opacity, 1));
+}
 .text-sky-700 {
   --tw-text-opacity: 1;
   color: rgb(3 105 161 / var(--tw-text-opacity, 1));
@@ -2488,6 +2506,11 @@ video {
 .shadow-2xl {
   --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+.shadow-\[0_12px_30px_rgba\(16\2c 24\2c 40\2c 0\.08\)\] {
+  --tw-shadow: 0 12px 30px rgba(16,24,40,0.08);
+  --tw-shadow-colored: 0 12px 30px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 .shadow-\[0_14px_36px_rgba\(16\2c 24\2c 40\2c 0\.08\)\] {
@@ -2670,6 +2693,11 @@ video {
   --tw-shadow-colored: 0 24px 70px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
+.shadow-\[0_24px_80px_rgba\(15\2c 23\2c 42\2c 0\.22\)\] {
+  --tw-shadow: 0 24px 80px rgba(15,23,42,0.22);
+  --tw-shadow-colored: 0 24px 80px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
 .shadow-\[0_26px_70px_rgba\(15\2c 118\2c 110\2c 0\.16\)\] {
   --tw-shadow: 0 26px 70px rgba(15,118,110,0.16);
   --tw-shadow-colored: 0 26px 70px var(--tw-shadow-color);
@@ -2732,6 +2760,14 @@ video {
   --tw-shadow-color: rgb(15 23 42 / 0.1);
   --tw-shadow: var(--tw-shadow-colored);
 }
+.shadow-slate-950\/15 {
+  --tw-shadow-color: rgb(2 6 23 / 0.15);
+  --tw-shadow: var(--tw-shadow-colored);
+}
+.shadow-slate-950\/20 {
+  --tw-shadow-color: rgb(2 6 23 / 0.2);
+  --tw-shadow: var(--tw-shadow-colored);
+}
 .shadow-violet-200\/20 {
   --tw-shadow-color: rgb(221 214 254 / 0.2);
   --tw-shadow: var(--tw-shadow-colored);
@@ -2776,6 +2812,10 @@ video {
 }
 .backdrop-blur {
   --tw-backdrop-blur: blur(8px);
+  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+}
+.backdrop-blur-sm {
+  --tw-backdrop-blur: blur(4px);
   backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
 }
 .transition {
@@ -2933,6 +2973,11 @@ textarea {
   border-color: rgb(220 38 38 / var(--tw-border-opacity, 1));
 }
 
+.hover\:border-slate-300:hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(203 213 225 / var(--tw-border-opacity, 1));
+}
+
 .hover\:border-slate-950:hover {
   --tw-border-opacity: 1;
   border-color: rgb(2 6 23 / var(--tw-border-opacity, 1));
@@ -3013,6 +3058,11 @@ textarea {
 .hover\:text-rose-200:hover {
   --tw-text-opacity: 1;
   color: rgb(254 205 211 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-slate-900:hover {
+  --tw-text-opacity: 1;
+  color: rgb(15 23 42 / var(--tw-text-opacity, 1));
 }
 
 .hover\:text-slate-950:hover {
@@ -3113,6 +3163,11 @@ textarea {
 .disabled\:bg-slate-100:disabled {
   --tw-bg-opacity: 1;
   background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1));
+}
+
+.disabled\:bg-slate-400:disabled {
+  --tw-bg-opacity: 1;
+  background-color: rgb(148 163 184 / var(--tw-bg-opacity, 1));
 }
 
 .disabled\:opacity-40:disabled {

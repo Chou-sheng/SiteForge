@@ -195,7 +195,9 @@ describe("generatePageWithAI", () => {
     expect(requestBody.response_format).toEqual({ type: "json_object" });
     expect(requestBody.messages[0].content).toMatch(/json/i);
     expect(requestBody.messages[0].content).toContain("design-taste-frontend");
-    expect(requestBody.messages[0].content).toContain("No wireframe-like numbered cards");
+    expect(requestBody.messages[0].content).toContain("Avoid wireframe-like numbered cards");
+    expect(requestBody.messages[0].content).not.toContain("restaurant");
+    expect(requestBody.messages[0].content).not.toContain("signature dishes");
   });
 
   test("normalizes usable DeepSeek page output that is missing required editor fields", async () => {
@@ -281,7 +283,7 @@ describe("generatePageWithAI", () => {
     expect(serialized(firstBlock)).not.toContain("模块库");
   });
 
-  test("rejects visible helper copy from low-quality AI page output", async () => {
+  test("keeps structurally valid output instead of failing on style-quality warnings", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
     mockDeepSeekDocument(aiDocument({
       blocks: [
@@ -296,14 +298,16 @@ describe("generatePageWithAI", () => {
       ],
     }));
 
-    await expect(generatePageWithAIResult({
+    const result = await generatePageWithAIResult({
       prompt: "高级美食网站首页",
       industry: "高端餐饮",
       pageType: "event-conversion",
-    })).rejects.toThrow("design-taste");
+    });
+
+    expect(result.document.blocks[0].props.title).toBe("AI Generated");
   });
 
-  test("rejects food dish grids that have no matched photography or prices", async () => {
+  test("does not block generated pages with industry-specific style gaps", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
     const baseBlock = aiDocument().blocks[0];
 
@@ -329,11 +333,165 @@ describe("generatePageWithAI", () => {
       ],
     }));
 
-    await expect(generatePageWithAIResult({
+    const result = await generatePageWithAIResult({
       prompt: "高级美食网站首页",
       industry: "高端餐饮",
       pageType: "event-conversion",
-    })).rejects.toThrow("design-taste");
+    });
+
+    expect(result.document.blocks[0].id).toBe("bad-dishes");
+  });
+
+  test("does not treat navigation or home reservation copy as a food photography failure", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
+    const baseBlock = aiDocument().blocks[0];
+
+    mockDeepSeekDocument(aiDocument({
+      title: "未来之家",
+      siteMeta: {
+        ...aiDocument().siteMeta,
+        companyName: "未来之家",
+        industry: "智能家居",
+        pageGoal: "lead-generation",
+      },
+      blocks: [
+        {
+          ...baseBlock,
+          id: "home-navigation",
+          name: "导航栏",
+          props: {
+            generatedModuleId: "generated-home-navigation",
+            intent: "导航栏",
+            layout: "hero",
+            title: "导航栏",
+            description: "预约参观未来之家样板空间",
+          },
+        },
+      ],
+    }));
+
+    const result = await generatePageWithAIResult({
+      prompt: "为智能家居品牌未来之家生成官网，突出预约参观和空间方案",
+      industry: "智能家居",
+      pageType: "lead-generation",
+    });
+
+    expect(result.document.blocks[0].name).toBe("导航栏");
+  });
+
+  test("converts common semantic DeepSeek blocks into generated sections", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-key");
+    const blockStyle = {
+      background: "default",
+      paddingTop: 72,
+      paddingBottom: 72,
+      textAlign: "left",
+      container: "contained",
+    };
+    const visibility = {
+      desktop: true,
+      tablet: true,
+      mobile: true,
+    };
+
+    mockDeepSeekDocument({
+      id: "smart-home-page",
+      title: "Aether Home",
+      description: "Smart home brand homepage",
+      version: 1,
+      siteMeta: {
+        companyName: "Aether Home",
+        industry: "Smart Home",
+        targetAudience: "Home owners and IoT product buyers",
+        pageGoal: "product-introduction",
+        seoTitle: "Aether Home Smart Living",
+        seoDescription: "A premium smart home brand homepage.",
+        keywords: ["smart home", "IoT"],
+      },
+      theme,
+      layout: {
+        maxWidth: "1440px",
+        contentDensity: "spacious",
+        responsiveMode: "marketing",
+      },
+      blocks: [
+        {
+          id: "semantic-nav",
+          type: "navbar",
+          variant: "default",
+          name: "Header",
+          props: {
+            logo: "Aether Home",
+            links: [
+              { label: "Products", href: "#products" },
+              { label: "App", href: "#app" },
+            ],
+            action: { label: "Buy", href: "#buy" },
+          },
+          style: blockStyle,
+          visibility,
+        },
+        {
+          id: "semantic-hero",
+          type: "hero",
+          variant: "default",
+          name: "Hero",
+          props: {
+            eyebrow: "Smart Living",
+            title: "Design your future home",
+            subtitle: "Control lighting, security, climate, and scenes from one quiet interface.",
+            primaryAction: { label: "Buy now", href: "#buy" },
+            secondaryAction: { label: "Learn more", href: "#products" },
+          },
+          style: blockStyle,
+          visibility,
+        },
+        {
+          id: "semantic-footer",
+          type: "footer",
+          variant: "default",
+          name: "Footer",
+          props: {
+            companyName: "Aether Home",
+            links: [
+              { label: "Support", href: "#support" },
+              { label: "Contact", href: "#contact" },
+            ],
+            copyright: "2026 Aether Home",
+          },
+          style: blockStyle,
+          visibility,
+        },
+      ],
+      createdAt: "2026-06-17T00:00:00.000Z",
+      updatedAt: "2026-06-17T00:00:00.000Z",
+    });
+
+    const result = await generatePageWithAIResult({
+      prompt: "Create a premium smart home brand homepage with header, hero and footer.",
+      industry: "Smart Home",
+      pageType: "product-introduction",
+    });
+
+    expect(result.document.blocks).toHaveLength(3);
+    expect(result.document.blocks.map((block) => block.type)).toEqual([
+      "aiGeneratedSection",
+      "aiGeneratedSection",
+      "aiGeneratedSection",
+    ]);
+    expect(result.document.blocks[0].props.title).toBe("Aether Home");
+    expect(result.document.blocks[0].props.items).toEqual([
+      { title: "Products", href: "#products" },
+      { title: "App", href: "#app" },
+    ]);
+    expect(result.document.blocks[1].props.layout).toBe("hero");
+    expect(result.document.blocks[1].props.primaryAction).toEqual({ label: "Buy now", href: "#buy" });
+    expect(result.document.blocks[2].props.title).toBe("Aether Home");
+    expect(result.document.blocks[2].props.items).toEqual([
+      { title: "Support", href: "#support" },
+      { title: "Contact", href: "#contact" },
+      { title: "Copyright", description: "2026 Aether Home" },
+    ]);
   });
 
   test("fails when DeepSeek returns no valid generated sections", async () => {
@@ -343,7 +501,7 @@ describe("generatePageWithAI", () => {
     await expect(generatePageWithAIResult({
       prompt: "高级美食网站首页",
       industry: "高端餐饮",
-    })).rejects.toThrow("DeepSeek 页面生成结果无效");
+    })).rejects.toThrow("DeepSeek 页面结构无效");
   });
 
   test("tells DeepSeek to generate page-scoped modules instead of selecting module-library families", () => {
@@ -359,5 +517,7 @@ describe("generatePageWithAI", () => {
     expect(pageGenerationSystemPrompt).toContain("page-scoped");
     expect(pageGenerationSystemPrompt).toContain("不要从模块库选择");
     expect(pageGenerationSystemPrompt).not.toContain("只能使用已注册模块类型");
+    expect(pageGenerationSystemPrompt).not.toContain("restaurant");
+    expect(pageGenerationSystemPrompt).not.toContain("signature dishes");
   });
 });

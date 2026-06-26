@@ -4,7 +4,7 @@ import type { EnterprisePageDocument, EnterpriseTheme } from "../../types/page";
 import { createId } from "../utils/id";
 import { enterpriseThemeSchema, pageBlockSchema, pageDocumentSchema } from "../validation/pageSchema";
 import { requestDeepSeekCompletion } from "./deepseekClient";
-import { buildDesignTasteInstruction, getDesignTasteIssues } from "./designTaste";
+import { buildDesignTasteInstruction } from "./designTaste";
 import { pageGenerationSystemPrompt } from "./prompts";
 import { extractJsonObject } from "./repairJson";
 
@@ -30,6 +30,13 @@ type DeepSeekChoice = {
 
 type DeepSeekResponse = {
   choices?: DeepSeekChoice[];
+};
+
+type DeepSeekErrorPayload = {
+  error?: string | {
+    message?: string;
+  };
+  message?: string;
 };
 
 const pageGoalValues = [
@@ -133,6 +140,40 @@ function stripUndefined(record: Record<string, unknown>) {
   return Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined));
 }
 
+function compactErrorText(value: string) {
+  const text = value.replace(/\s+/g, " ").trim();
+
+  return text.length > 240 ? `${text.slice(0, 240)}...` : text;
+}
+
+async function readDeepSeekErrorDetail(response: Response) {
+  try {
+    const payload = (await response.clone().json()) as DeepSeekErrorPayload;
+
+    if (typeof payload.error === "string" && payload.error.trim()) {
+      return compactErrorText(payload.error);
+    }
+
+    if (isRecord(payload.error) && typeof payload.error.message === "string" && payload.error.message.trim()) {
+      return compactErrorText(payload.error.message);
+    }
+
+    if (typeof payload.message === "string" && payload.message.trim()) {
+      return compactErrorText(payload.message);
+    }
+  } catch {
+    // Fall back to text below when the provider returns a non-JSON error.
+  }
+
+  try {
+    const text = await response.text();
+
+    return text.trim() ? compactErrorText(text) : null;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeStyle(candidate: unknown, fallback: BlockStyle): BlockStyle {
   if (!isRecord(candidate)) {
     return fallback;
@@ -221,6 +262,242 @@ function normalizeImage(value: unknown) {
   const alt = stringValue(value.alt);
 
   return src && alt ? { src, alt } : undefined;
+}
+
+type SemanticBlockSpec = {
+  intent: string;
+  layout: GeneratedLayout;
+  itemKeys?: string[];
+  metricKeys?: string[];
+  includeCopyright?: boolean;
+};
+
+function identityFromValues(values: unknown[]) {
+  return values.flatMap((value) => {
+    const text = stringValue(value);
+
+    return text ? [text.toLowerCase()] : [];
+  }).join(" ");
+}
+
+function semanticBlockSpec(candidate: Record<string, unknown>, props: Record<string, unknown>): SemanticBlockSpec | null {
+  const identity = identityFromValues([
+    candidate.type,
+    candidate.variant,
+    candidate.name,
+    props.intent,
+    props.layout,
+    props.title,
+  ]);
+
+  if (!identity || identity.includes("aigeneratedsection")) {
+    return null;
+  }
+
+  if (/(navbar|nav|navigation|header|menu|\u5bfc\u822a|\u83dc\u5355|\u9876\u90e8|\u5934\u90e8)/.test(identity)) {
+    return { intent: "navigation", layout: "feature-grid", itemKeys: ["items", "links"] };
+  }
+
+  if (/(footer|\u9875\u811a|\u5e95\u90e8)/.test(identity)) {
+    return {
+      intent: "footer",
+      layout: "feature-grid",
+      itemKeys: ["items", "links", "contacts"],
+      includeCopyright: true,
+    };
+  }
+
+  if (/(hero|banner|masthead|\u9996\u5c4f|\u4e3b\u89c6\u89c9|\u5f00\u573a)/.test(identity)) {
+    return { intent: "hero", layout: "hero", itemKeys: ["items", "badges", "features"] };
+  }
+
+  if (/(cta|calltoaction|conversion|leadform|contactsales|booking|\u8f6c\u5316|\u884c\u52a8|\u4f53\u9a8c|\u8d2d\u4e70|\u9884\u7ea6)/.test(identity)) {
+    return { intent: "conversion", layout: "conversion", itemKeys: ["items"], metricKeys: ["metrics"] };
+  }
+
+  if (/(testimonial|review|proof|case|\u8bc4\u4ef7|\u53e3\u7891|\u7528\u6237|\u6848\u4f8b)/.test(identity)) {
+    return { intent: "proof", layout: "proof", itemKeys: ["items", "testimonials", "cases"] };
+  }
+
+  if (/(metric|stat|truststats|number|data|\u6307\u6807|\u6570\u636e)/.test(identity)) {
+    return { intent: "metrics", layout: "metric-band", itemKeys: ["items"], metricKeys: ["metrics", "stats"] };
+  }
+
+  if (/(timeline|workflow|process|steps|journey|\u6d41\u7a0b|\u6b65\u9aa4|\u8def\u5f84)/.test(identity)) {
+    return { intent: "timeline", layout: "timeline", itemKeys: ["items", "steps"] };
+  }
+
+  if (/(spotlight|split|about|story|\u5173\u4e8e|\u6545\u4e8b|\u56fe\u6587)/.test(identity)) {
+    return { intent: "story", layout: "split-story", itemKeys: ["items", "features"] };
+  }
+
+  if (/(feature|product|showcase|usecase|solution|highlight|scene|app|\u4eae\u70b9|\u4ea7\u54c1|\u529f\u80fd|\u573a\u666f|\u4f18\u52bf|\u65b9\u6848)/.test(identity)) {
+    return {
+      intent: "content",
+      layout: "feature-grid",
+      itemKeys: ["items", "features", "products", "useCases", "solutions", "scenes"],
+      metricKeys: ["metrics", "stats"],
+    };
+  }
+
+  return null;
+}
+
+function stringFromKeys(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const text = stringValue(source[key]);
+
+    if (text) {
+      return text;
+    }
+  }
+
+  return undefined;
+}
+
+function actionFromKeys(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const action = normalizeAction(source[key]);
+
+    if (action) {
+      return action;
+    }
+  }
+
+  return undefined;
+}
+
+function arrayFromKeys(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = source[key];
+
+    if (Array.isArray(value)) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeSemanticItem(value: unknown) {
+  const text = stringValue(value);
+
+  if (text) {
+    return { title: text };
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const title =
+    stringValue(value.title)
+    ?? stringValue(value.name)
+    ?? stringValue(value.label)
+    ?? stringValue(value.author)
+    ?? stringValue(value.question)
+    ?? stringValue(value.value);
+
+  if (!title) {
+    return null;
+  }
+
+  const displayValue = stringValue(value.value) ?? stringValue(value.price);
+
+  return stripUndefined({
+    title,
+    description:
+      stringValue(value.description)
+      ?? stringValue(value.summary)
+      ?? stringValue(value.quote)
+      ?? stringValue(value.answer),
+    icon: stringValue(value.icon),
+    value: displayValue && displayValue !== title ? displayValue : undefined,
+    label: stringValue(value.rating),
+    meta: stringValue(value.meta) ?? stringValue(value.role),
+    href: stringValue(value.href),
+    image: normalizeImage(value.image),
+  });
+}
+
+function normalizeSemanticItems(value: unknown) {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const items = value.flatMap((item) => {
+    const normalized = normalizeSemanticItem(item);
+
+    return normalized ? [normalized] : [];
+  });
+
+  return items.length > 0 ? items : undefined;
+}
+
+function normalizeSemanticMetrics(value: unknown) {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const metrics = value.flatMap((metric) => {
+    const normalized = normalizeMetric(metric);
+
+    return normalized ? [normalized] : [];
+  });
+
+  return metrics.length > 0 ? metrics : undefined;
+}
+
+function semanticGeneratedProps(candidate: Record<string, unknown>, props: Record<string, unknown>, spec: SemanticBlockSpec) {
+  const itemKeys = spec.itemKeys ?? ["items"];
+  const metricKeys = spec.metricKeys ?? ["metrics"];
+  const items = normalizeSemanticItems(arrayFromKeys(props, itemKeys));
+  const metrics = normalizeSemanticMetrics(arrayFromKeys(props, metricKeys));
+  const copyright = spec.includeCopyright ? stringValue(props.copyright) : undefined;
+  const title =
+    stringFromKeys(props, ["title", "companyName", "logo", "heading", "name"])
+    ?? stringValue(candidate.name)
+    ?? spec.intent;
+
+  return stripUndefined({
+    generatedModuleId: stringValue(props.generatedModuleId) ?? createId("generated-module"),
+    intent: stringValue(props.intent) ?? stringValue(candidate.name) ?? spec.intent,
+    layout: normalizeGeneratedLayout(props.layout) ?? spec.layout,
+    eyebrow: stringValue(props.eyebrow),
+    title,
+    subtitle: stringFromKeys(props, ["subtitle", "tagline"]),
+    description: stringFromKeys(props, ["description", "summary"]),
+    primaryAction: actionFromKeys(props, ["primaryAction", "action", "cta"]),
+    secondaryAction: actionFromKeys(props, ["secondaryAction"]),
+    image: normalizeImage(props.image),
+    items: copyright
+      ? [...(items ?? []), { title: "Copyright", description: copyright }]
+      : items,
+    metrics,
+    fields: stringArrayValue(props.fields),
+    tone: normalizeTone(props.tone),
+    styleNotes: stringArrayValue(props.styleNotes),
+  });
+}
+
+function normalizeBlockCandidate(candidate: Record<string, unknown>) {
+  if (candidate.type === "aiGeneratedSection") {
+    return candidate;
+  }
+
+  const props = isRecord(candidate.props) ? candidate.props : {};
+  const spec = semanticBlockSpec(candidate, props);
+
+  if (!spec) {
+    return null;
+  }
+
+  return {
+    ...candidate,
+    type: "aiGeneratedSection",
+    variant: "generated",
+    props: semanticGeneratedProps(candidate, props, spec),
+  };
 }
 
 function normalizeGeneratedItem(value: unknown) {
@@ -334,15 +611,21 @@ function normalizeGeneratedProps(candidateProps: unknown, candidate: Record<stri
 }
 
 function normalizeBlock(candidate: unknown): PageBlock | null {
-  if (!isRecord(candidate) || candidate.type !== "aiGeneratedSection") {
+  if (!isRecord(candidate)) {
     return null;
   }
 
-  const variant = ["generated", "generated-hero", "generated-grid"].includes(String(candidate.variant))
-    ? String(candidate.variant)
+  const generatedCandidate = normalizeBlockCandidate(candidate);
+
+  if (!generatedCandidate) {
+    return null;
+  }
+
+  const variant = ["generated", "generated-hero", "generated-grid"].includes(String(generatedCandidate.variant))
+    ? String(generatedCandidate.variant)
     : undefined;
   const fallbackBlock = createDefaultBlock("aiGeneratedSection", variant);
-  const props = normalizeGeneratedProps(candidate.props, candidate);
+  const props = normalizeGeneratedProps(generatedCandidate.props, generatedCandidate);
 
   if (!props) {
     return null;
@@ -350,11 +633,11 @@ function normalizeBlock(candidate: unknown): PageBlock | null {
 
   const normalizedBlock = {
     ...fallbackBlock,
-    id: stringValue(candidate.id) ?? fallbackBlock.id,
+    id: stringValue(generatedCandidate.id) ?? fallbackBlock.id,
     name: stringValue(candidate.name) ?? stringValue(props.intent) ?? fallbackBlock.name,
     props,
-    style: normalizeStyle(candidate.style, fallbackBlock.style),
-    visibility: normalizeVisibility(candidate.visibility, fallbackBlock.visibility),
+    style: normalizeStyle(generatedCandidate.style, fallbackBlock.style),
+    visibility: normalizeVisibility(generatedCandidate.visibility, fallbackBlock.visibility),
   };
   const result = pageBlockSchema.safeParse(normalizedBlock);
 
@@ -435,36 +718,51 @@ function buildUserPrompt(input: GeneratePageInput): string {
   });
 }
 
-async function requestDeepSeekPage(input: GeneratePageInput, apiKey: string): Promise<EnterprisePageDocument | null> {
+async function requestDeepSeekPage(input: GeneratePageInput, apiKey: string): Promise<EnterprisePageDocument> {
   const systemPrompt = [
     pageGenerationSystemPrompt,
     buildDesignTasteInstruction(input, "page-generation"),
   ].join("\n\n");
 
-  const response = await requestDeepSeekCompletion(
-    apiKey,
-    {
-      model: process.env.DEEPSEEK_MODEL || "deepseek-v4-flash",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: buildUserPrompt(input) },
-      ],
-    },
-  );
+  let response: Response;
+
+  try {
+    response = await requestDeepSeekCompletion(
+      apiKey,
+      {
+        model: process.env.DEEPSEEK_MODEL || "deepseek-v4-flash",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: buildUserPrompt(input) },
+        ],
+      },
+    );
+  } catch {
+    throw new Error("DeepSeek 页面生成请求失败");
+  }
 
   if (!response.ok) {
-    throw new Error("DeepSeek page request failed");
+    const detail = await readDeepSeekErrorDetail(response);
+    const statusMessage = `DeepSeek 页面生成请求失败（HTTP ${response.status}）`;
+
+    throw new Error(detail ? `${statusMessage}：${detail}` : statusMessage);
   }
 
   const payload = (await response.json()) as DeepSeekResponse;
   const content = payload.choices?.[0]?.message?.content;
 
-  if (!content) {
-    return null;
+  if (!content?.trim()) {
+    throw new Error("DeepSeek 返回页面内容为空");
   }
 
-  return normalizeDeepSeekDocument(extractJsonObject(content), input);
+  const document = normalizeDeepSeekDocument(extractJsonObject(content), input);
+
+  if (!document) {
+    throw new Error("DeepSeek 页面结构无效");
+  }
+
+  return document;
 }
 
 export async function generatePageWithAI(input: GeneratePageInput): Promise<EnterprisePageDocument> {
@@ -478,22 +776,16 @@ export async function generatePageWithAIResult(input: GeneratePageInput): Promis
     throw new Error("DeepSeek API Key 未配置");
   }
 
-  let document: EnterprisePageDocument | null;
+  let document: EnterprisePageDocument;
 
   try {
     document = await requestDeepSeekPage(input, apiKey);
-  } catch {
-    throw new Error("DeepSeek 页面生成请求失败");
-  }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
 
-  if (!document) {
-    throw new Error("DeepSeek 页面生成结果无效");
-  }
-
-  const tasteIssues = getDesignTasteIssues(document, input);
-
-  if (tasteIssues.length > 0) {
-    throw new Error(`DeepSeek design-taste validation failed: ${tasteIssues.slice(0, 3).join("; ")}`);
+    throw new Error("DeepSeek 页面生成失败");
   }
 
   return {

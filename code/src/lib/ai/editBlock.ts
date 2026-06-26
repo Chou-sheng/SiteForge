@@ -3,7 +3,7 @@ import type { EnterprisePageDocument } from "../../types/page";
 import { getBlockPropsSchema } from "../validation/blockSchemas";
 import { pageBlockSchema } from "../validation/pageSchema";
 import { requestDeepSeekCompletion } from "./deepseekClient";
-import { buildDesignTasteInstruction, getDesignTasteBlockIssues } from "./designTaste";
+import { buildDesignTasteInstruction } from "./designTaste";
 import { blockEditSystemPrompt } from "./prompts";
 import { extractJsonObject } from "./repairJson";
 
@@ -145,7 +145,7 @@ async function requestDeepSeekBlock(input: EditBlockInput, apiKey: string): Prom
     return null;
   }
 
-  return getDesignTasteBlockIssues(block, taste).length === 0 ? block : null;
+  return block;
 }
 
 export async function editBlockWithAI(input: EditBlockInput): Promise<{ block: PageBlock }> {
