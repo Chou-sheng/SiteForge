@@ -305,7 +305,7 @@ describe("AICommandPanel", () => {
     expect(await screen.findByText("模块已修改")).toBeTruthy();
   });
 
-  test("reports a Chinese failure state when a handler rejects", async () => {
+    test("reports the handler error message when page generation rejects", async () => {
     render(
       <AICommandPanel
         hasSelectedBlock
@@ -319,9 +319,9 @@ describe("AICommandPanel", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "生成页面" }));
 
-    expect(await screen.findByText("页面生成失败，请稍后重试")).toBeTruthy();
+      expect(await screen.findByText("failed")).toBeTruthy();
+    });
   });
-});
 
 describe("Canvas", () => {
   test("renders selectable blocks without nesting them inside button semantics", () => {
@@ -442,7 +442,7 @@ describe("EditorShell", () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse(createRecord(originalDocument)))
-      .mockResolvedValueOnce(jsonResponse({ error: "生成页面失败" }, { status: 500 }));
+        .mockResolvedValueOnce(jsonResponse({ error: "DeepSeek page output is invalid" }, { status: 500 }));
 
     vi.stubGlobal("fetch", fetchMock);
 
@@ -455,7 +455,7 @@ describe("EditorShell", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "生成页面" }));
 
-    expect(await screen.findByText("页面生成失败，请稍后重试")).toBeTruthy();
+      expect(await screen.findByText("DeepSeek page output is invalid")).toBeTruthy();
     expect(screen.queryByText("页面已生成")).toBeNull();
   });
 

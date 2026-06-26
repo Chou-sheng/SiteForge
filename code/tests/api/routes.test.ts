@@ -400,6 +400,7 @@ describe("API routes", () => {
 
   test("fails page generation when DeepSeek is not configured", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     const response = await generatePage(request("/api/ai/generate-page", {
       prompt: "为智能制造企业生成一页官网",
@@ -410,7 +411,8 @@ describe("API routes", () => {
     expect(response.headers.get("x-ai-source")).toBeNull();
     expect(response.headers.get("x-ai-fallback-reason")).toBeNull();
     await expect(response.json()).resolves.toMatchObject({
-      error: "生成页面失败",
+      error: expect.stringContaining("DeepSeek API Key"),
     });
+    expect(consoleError).toHaveBeenCalledWith(expect.stringContaining("DeepSeek API Key"));
   });
 });

@@ -554,9 +554,9 @@ export const aiGeneratedSectionBlock = defineBlock<Record<string, unknown>>({
     title: "精选体验",
     description: "以统一的视觉节奏承接当前页面的核心内容。",
     items: [
-      { icon: "01", title: "核心亮点", description: "突出最重要的页面信息。" },
-      { icon: "02", title: "视觉节奏", description: "保持内容、图片和行动入口统一。" },
-      { icon: "03", title: "转化路径", description: "帮助访客快速完成下一步操作。" },
+      { icon: "sparkles", title: "核心亮点", description: "突出最重要的页面信息。" },
+      { icon: "layout", title: "视觉节奏", description: "保持内容、图片和行动入口统一。" },
+      { icon: "target", title: "转化路径", description: "帮助访客快速完成下一步操作。" },
     ],
   },
   defaultStyle: { background: "default", paddingTop: 88, paddingBottom: 88, textAlign: "left", container: "contained" },

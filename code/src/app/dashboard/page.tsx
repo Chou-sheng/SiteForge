@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { Copy, FilePlus2, LayoutDashboard, LibraryBig, PencilLine, Sparkles, Trash2 } from "lucide-react";
+import { Copy, FilePlus2, Home, LayoutDashboard, LibraryBig, PencilLine, Sparkles, Trash2 } from "lucide-react";
 
 import { createBlankPage, deletePage, duplicatePage, listPages, renamePage } from "../../lib/db/pageStore";
 import type { PageRecord } from "../../types/page";
@@ -71,6 +71,13 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm hover:border-violet-200 hover:text-violet-700"
+              href="/"
+            >
+              <Home aria-hidden="true" className="h-4 w-4" />
+              返回首页
+            </Link>
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm hover:border-violet-200 hover:text-violet-700"
               href="/templates"

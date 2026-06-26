@@ -27,6 +27,23 @@ async function assertNoPrivateEnvFiles(directory) {
   }
 }
 
+async function removePrivateEnvFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const entryPath = join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      await removePrivateEnvFiles(entryPath);
+      continue;
+    }
+
+    if (entry.name === ".env.local") {
+      await rm(entryPath, { force: true });
+    }
+  }
+}
+
 async function pruneUnusedSharpPlatforms(nodeModulesDirectory) {
   const imagePackagesDirectory = join(nodeModulesDirectory, "@img");
   const entries = await readdir(imagePackagesDirectory, { withFileTypes: true });
@@ -83,7 +100,7 @@ const desktopPackage = {
       },
     ],
     extraFiles: [
-      { from: "../../README.md", to: "README.md" },
+      { from: "../../../README.md", to: "README.md" },
       { from: "../../config.example.env", to: "config.example.env" },
       { from: "../../VERSION.txt", to: "VERSION.txt" },
       { from: "../../THIRD_PARTY_NOTICES.txt", to: "THIRD_PARTY_NOTICES.txt" },
@@ -97,6 +114,7 @@ await writeFile(
 );
 
 await cp(standaloneSource, serverTarget, { recursive: true });
+await removePrivateEnvFiles(serverTarget);
 await cp(staticSource, join(serverTarget, ".next", "static"), { recursive: true });
 await cp(publicSource, join(serverTarget, "public"), { recursive: true });
 await pruneUnusedSharpPlatforms(join(serverTarget, "node_modules"));

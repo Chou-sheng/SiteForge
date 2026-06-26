@@ -15,7 +15,7 @@
     "test:watch": "pnpm static-runtime:build && vitest",
     "desktop:compile": "tsc -p desktop/tsconfig.json",
     "desktop:prepare": "node scripts/prepare-desktop-build.mjs",
-    "desktop:package": "pnpm build && pnpm desktop:compile && pnpm desktop:prepare && cd desktop-build/app && ../../node_modules/.bin/electron-builder --win --x64 --dir && node ../../scripts/finalize-desktop-release.mjs"
+    "desktop:package": "pnpm build && pnpm desktop:compile && pnpm desktop:prepare && cd desktop-build/app && ..\\..\\node_modules\\.bin\\electron-builder.cmd --win --x64 --dir && node ..\\..\\scripts\\finalize-desktop-release.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -80,7 +80,7 @@
     ],
     "extraFiles": [
       {
-        "from": "README.md",
+        "from": "../README.md",
         "to": "README.md"
       },
       {

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, LayoutDashboard, LibraryBig } from "lucide-react";
 
+import { AiConfigDialog } from "../components/common/AiConfigDialog";
+
 const entryLinks = [
   {
     href: "/dashboard",
@@ -27,6 +29,9 @@ export default function Home() {
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600">
             提供模板、模块编辑、智能生成、预览、HTML 导出和发布。
           </p>
+          <div className="mt-8">
+            <AiConfigDialog />
+          </div>
         </div>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2">

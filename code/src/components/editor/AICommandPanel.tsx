@@ -16,6 +16,12 @@ type PanelStatus = {
   message: string;
 } | null;
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message.trim()
+    ? error.message
+    : fallback;
+}
+
 export function AICommandPanel({
   hasSelectedBlock,
   pagePromptId,
@@ -45,8 +51,11 @@ export function AICommandPanel({
         tone: message?.includes("未生效") ? "info" : "success",
         message: message ?? "页面已生成",
       });
-    } catch {
-      setStatus({ tone: "error", message: "页面生成失败，请稍后重试" });
+    } catch (error) {
+      setStatus({
+        tone: "error",
+        message: getErrorMessage(error, "页面生成失败，请稍后重试"),
+      });
     } finally {
       setPendingAction(null);
     }
@@ -74,8 +83,11 @@ export function AICommandPanel({
         tone: message?.includes("未生效") ? "info" : "success",
         message: message ?? "模块已修改",
       });
-    } catch {
-      setStatus({ tone: "error", message: "当前模块修改失败，请稍后重试" });
+    } catch (error) {
+      setStatus({
+        tone: "error",
+        message: getErrorMessage(error, "当前模块修改失败，请稍后重试"),
+      });
     } finally {
       setPendingAction(null);
     }

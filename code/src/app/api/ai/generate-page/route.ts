@@ -11,6 +11,19 @@ const generatePageRequestSchema = z.object({
   pageType: z.string().trim().min(1).optional(),
 }).strict();
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error && error.message.trim()
+    ? error.message
+    : "生成页面失败";
+}
+
+function logGeneratePageError(error: unknown) {
+  const name = error instanceof Error ? error.name : typeof error;
+  const message = getErrorMessage(error);
+
+  console.error(`[api/ai/generate-page] ${name}: ${message}`);
+}
+
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -34,7 +47,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(result.document, { headers });
-  } catch {
-    return errorResponse("生成页面失败", 500);
+  } catch (error) {
+    logGeneratePageError(error);
+
+    return errorResponse(getErrorMessage(error), 500);
   }
 }

@@ -45,9 +45,28 @@ function getAIResultMessage(action: "page" | "block") {
   };
 }
 
+function getJsonErrorMessage(payload: unknown) {
+  return typeof payload === "object"
+    && payload !== null
+    && "error" in payload
+    && typeof payload.error === "string"
+    && payload.error.trim()
+    ? payload.error
+    : null;
+}
+
 async function readJsonResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error("请求失败");
+    let message = "请求失败";
+
+    try {
+      const errorPayload = await response.json();
+      message = getJsonErrorMessage(errorPayload) ?? message;
+    } catch {
+      // Keep the fallback when an error response is not JSON.
+    }
+
+    throw new Error(message);
   }
 
   return (await response.json()) as T;
