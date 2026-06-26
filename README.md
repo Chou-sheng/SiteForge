@@ -1,76 +1,82 @@
-# 站点工坊 SiteForge
+# SiteForge 开发说明
 
-站点工坊 SiteForge 是一款 Windows 本地网站生成、可视化编辑与静态发布工具。程序提供页面工作台、页面管理、模板中心、可视化编辑器、AI 页面生成、AI 区块修改、响应式预览、HTML 导出和静态站点发布能力。
+`code/` 是站点工坊 SiteForge 的源代码目录。项目基于 Next.js、React、Tailwind CSS、Zustand、Zod、Vitest 和 Electron，提供本地网站生成、可视化编辑、AI 页面生成、AI 区块修改、HTML 导出和桌面静态发布能力。
 
-发行版本采用文件夹形式交付。完整的 `SiteForge/` 目录包含主程序、运行资源、用户说明、示例配置和第三方组件说明。
-
-## 目录内容
+## 目录结构
 
 ```text
-SiteForge/
-  SiteForge.exe
-  resources/
-  README.md
-  config.example.env
-  VERSION.txt
-  THIRD_PARTY_NOTICES.txt
+code/
+  data/                  # Web 开发模式下的页面数据
+  desktop/               # Electron 主进程、预加载脚本和本地服务启动逻辑
+  public/                # 模板图片和静态站点运行时资源
+  scripts/               # 静态运行时构建、桌面构建准备和发布整理脚本
+  src/
+    app/                 # Next.js App Router 页面和 API
+    components/          # 通用组件、编辑器组件和页面渲染组件
+    lib/                 # AI、数据存储、导出、发布、模板和校验逻辑
+    modules/             # 页面区块模块和区块注册表
+    store/               # 编辑器状态
+    types/               # 页面和区块类型
+  tests/                 # Vitest 自动化测试
 ```
 
-- `SiteForge.exe`：桌面主程序。
-- `resources/`：Electron 与本地 Next.js 服务运行资源。
-- `README.md`：使用、配置、发布和数据位置说明。
-- `config.example.env`：DeepSeek API 配置示例。
-- `VERSION.txt`：版本、平台和目录信息。
-- `THIRD_PARTY_NOTICES.txt`：第三方组件说明。
+## 主要入口
 
-## 系统要求
+- `/`：页面工作台首页，包含页面管理、模板中心和 AI 配置入口。
+- `/dashboard`：页面管理，包含返回首页、模板中心、新建页面和智能创建页面入口。
+- `/templates`：模板中心。
+- `/editor/[pageId]`：页面编辑器。
+- `/preview/[pageId]`：页面预览。
 
-- Windows 10 或 Windows 11，64 位。
-- 建议至少 8 GB 内存。
-- AI 页面生成和 AI 区块修改需要可访问 DeepSeek API 的网络环境。
-- 模板、编辑、保存、预览、HTML 导出和静态发布可在未配置 API Key 的状态下使用。
+## 环境要求
 
-## 启动
+- Node.js 20 或更高版本。
+- pnpm。
+- Windows 环境用于桌面版打包和运行。
 
-1. 解压完整的 `SiteForge/` 文件夹。
-2. 双击 `SiteForge.exe`。
-3. 首次启动会在本机用户数据目录创建页面、配置和日志目录。
+## 安装依赖
 
-程序只在本机 `127.0.0.1` 启动内部服务。关闭程序后，内部服务随程序退出。
+```powershell
+cd code
+pnpm install
+```
 
-## 首页入口
+## Web 开发模式
 
-首页提供三个主要入口：
+```powershell
+cd code
+pnpm dev
+```
 
-- 页面管理：查看草稿、发布状态和更新时间，继续编辑、复制、重命名或删除页面。
-- 模板中心：搜索、筛选和预览整页模板，并从模板创建页面。
-- AI 配置：填写 DeepSeek API Key 和模型名称，保存前会真实调用一次 DeepSeek 接口完成校验。
+启动后访问：
 
-页面管理顶部提供“返回首页”按钮，可回到首页入口。
+```text
+http://localhost:3000
+```
 
-## DeepSeek API 配置
+Web 开发模式下页面数据位于：
 
-首页的“AI 配置”按钮会打开配置弹窗。弹窗包含：
+```text
+code/data/pages.json
+```
 
-- API Key 输入框。
-- 模型名称输入框。
-- “校验并保存”按钮。
-- 校验中的等待提示。
-- 校验成功或失败提示。
+## AI 配置
 
-保存流程为：
+首页“AI 配置”按钮会打开配置弹窗。用户填写 DeepSeek API Key 和模型名称后，程序会真实调用一次 DeepSeek `chat/completions` 接口完成校验，校验成功后写入配置。
 
-1. 使用输入的 API Key 和模型名称请求 DeepSeek `chat/completions`。
-2. DeepSeek 返回有效结果后写入本机配置。
-3. 程序提示重新打开应用后生效。
+开发模式配置文件：
 
-配置文件位置：
+```text
+code/.env.local
+```
+
+桌面版用户配置文件：
 
 ```text
 %APPDATA%/SiteForge/config/config.env
 ```
 
-配置内容格式：
+配置格式：
 
 ```dotenv
 DEEPSEEK_API_KEY=replace-with-your-key
@@ -86,11 +92,55 @@ DEEPSEEK_MAX_TOKENS=8192
 - `DEEPSEEK_TIMEOUT_MS`：单次请求超时时间，单位毫秒。
 - `DEEPSEEK_MAX_TOKENS`：单次生成允许的最大输出 Token 数。
 
-保存配置后，完全退出并重新启动程序。桌面版在启动内部服务时读取配置。
+开发模式保存配置后，重启 `pnpm dev` 生效。桌面版保存配置后，重新打开应用生效。
 
-## 页面数据、配置和日志
+## AI 服务实现
 
-默认用户数据目录：
+- `src/lib/ai/deepseekClient.ts`：统一发起 DeepSeek Chat Completions 请求。
+- `src/lib/ai/configStore.ts`：读取、写入和定位 DeepSeek 配置文件。
+- `src/app/api/ai/config/route.ts`：提供配置状态读取、真实校验和保存接口。
+- `src/lib/ai/generatePage.ts`：AI 页面生成。
+- `src/lib/ai/editBlock.ts`：AI 区块修改。
+
+AI 页面生成会创建 `aiGeneratedSection` 页面级承载区块。生成区块属于当前页面，可继续编辑、保存、导出和发布。生成结果会经过结构校验和设计质量校验后写入页面。
+
+## 常用脚本
+
+```text
+pnpm dev                  # 开发模式运行 Next.js
+pnpm build                # 构建生产版本
+pnpm start                # 启动生产 Next.js 服务
+pnpm test                 # 运行 Vitest 测试
+pnpm test:watch           # 监听模式运行测试
+pnpm lint                 # 运行 ESLint
+pnpm desktop:compile      # 编译 Electron 主进程
+pnpm desktop:package      # 打包 Windows 文件夹版应用
+pnpm static-runtime:build # 构建静态站点运行时资源
+```
+
+## 桌面版打包
+
+```powershell
+cd code
+pnpm desktop:package
+```
+
+打包流程包含：
+
+- 构建静态站点运行时资源。
+- 构建 Next.js standalone 服务。
+- 编译 Electron 主进程。
+- 准备 `desktop-build/`。
+- 使用 electron-builder 生成 Windows 文件夹版应用。
+- 整理输出目录。
+
+输出目录：
+
+```text
+code/release/SiteForge/
+```
+
+桌面版运行时用户数据目录：
 
 ```text
 %APPDATA%/SiteForge/
@@ -99,81 +149,17 @@ DEEPSEEK_MAX_TOKENS=8192
   logs/app.log
 ```
 
-- `data/pages.json`：用户创建的页面、草稿和发布状态。
-- `config/config.env`：用户的 DeepSeek API 配置。
-- `logs/app.log`：桌面程序和内部服务日志。
+## 静态发布和 HTML 导出
 
-这些数据存放在系统用户数据目录。更换或更新程序文件夹时，已创建的页面和配置仍保留在本机用户数据目录中。
+静态发布会生成包含 `index.html` 和 `assets/` 的站点目录，适合部署到静态托管环境。HTML 导出会生成单个 HTML 文件，适合本地查看、归档或快速发送。
 
-## 主要功能
+## 验证
 
-- 模板中心：提供企业官网、AI 产品官网、教育机构官网、文旅度假官网和建筑空间官网等模板。
-- 页面管理：展示页面名称、行业、状态和更新时间，支持继续编辑、复制、重命名和删除。
-- 可视化编辑器：添加、选择、组合和调整页面区块。
-- 属性面板：编辑文字、图片、按钮、颜色、布局和显示状态。
-- AI 页面生成：根据提示词生成完整页面草稿。
-- AI 区块修改：根据指令修改当前区块，并保持页面整体风格一致。
-- 响应式预览：查看桌面、平板和移动端页面效果。
-- HTML 导出：生成可独立打开的单文件 HTML。
-- 静态站点发布：生成包含 `index.html` 和 `assets/` 的静态站点目录。
+常规验证命令：
 
-## AI 生成质量规则
-
-AI 页面生成会创建 `aiGeneratedSection` 页面级承载区块。生成区块属于当前页面，可继续编辑、保存、导出和发布。
-
-页面生成和区块修改会注入设计质量规则，约束排版、留白、图片、响应式布局和行业视觉一致性。AI 返回内容需要通过结构校验和设计质量校验后才会写入页面。
-
-## 静态站点发布
-
-在编辑器中点击发布后，程序会在用户选择的位置生成静态站点目录。典型结构：
-
-```text
-selected-folder/
-  page-name/
-    index.html
-    assets/
-      renderer.js
-      style.css
-      image-xxxx.jpg
+```powershell
+cd code
+pnpm lint
+pnpm test
+pnpm build
 ```
-
-发布结果可直接打开 `index.html` 预览，也可上传到 Nginx、Apache、OSS、Vercel、Netlify 等静态托管环境。发布页面使用与程序预览相同的页面渲染器。
-
-## HTML 导出
-
-HTML 导出会生成单个 HTML 文件，适合快速发送、归档或本地查看。静态站点发布生成完整目录结构，更适合长期部署。
-
-## 备份、恢复和迁移
-
-页面、配置和日志位于 `%APPDATA%/SiteForge/`。备份该目录即可保留页面草稿、发布状态和 API 配置。
-
-恢复时，将备份内容放回 `%APPDATA%/SiteForge/`，再启动程序。迁移到其他电脑时，程序文件夹 `SiteForge/` 和用户数据备份分别复制到新电脑对应位置。
-
-## 常见问题
-
-### 双击 exe 没有窗口
-
-- 程序需要完整的 `SiteForge/` 文件夹结构。
-- 日志位置为 `%APPDATA%/SiteForge/logs/app.log`。
-- Windows SmartScreen 可能显示发布者提示，确认后可继续运行。
-
-### 智能功能失败
-
-- 首页“AI 配置”可校验 API Key 和模型名称。
-- 配置文件位置为 `%APPDATA%/SiteForge/config/config.env`。
-- 网络连接、账号额度、模型权限和 DeepSeek 服务状态都会影响智能功能。
-- 配置变更在重新打开应用后生效。
-
-### 发布页面样式或图片异常
-
-- 发布目录包含 `index.html` 和 `assets/`。
-- 图片资源会复制到 `assets/` 并使用相对路径引用。
-- 部署到子路径时，保持发布目录内部结构即可。
-
-## 最短使用流程
-
-1. 解压完整 `SiteForge/` 文件夹。
-2. 双击 `SiteForge.exe`。
-3. 在首页进入模板中心或页面管理。
-4. 使用智能功能时，在首页打开“AI 配置”，校验并保存 API Key 与模型名称。
-5. 重新打开应用后使用 AI 页面生成或 AI 区块修改。
