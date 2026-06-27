@@ -5,7 +5,7 @@ import { createId } from "../utils/id";
 import { enterpriseThemeSchema, pageBlockSchema, pageDocumentSchema } from "../validation/pageSchema";
 import { requestDeepSeekCompletion } from "./deepseekClient";
 import { buildDesignTasteInstruction } from "./designTaste";
-import { pageGenerationSystemPrompt } from "./prompts";
+import { pageGenerationSystemPrompt, pageMappingRepairSystemPrompt } from "./prompts";
 import { extractJsonObject } from "./repairJson";
 
 export type GeneratePageInput = {
@@ -63,6 +63,8 @@ const generatedLayoutValues = [
 ] as const;
 const toneSurfaceValues = ["light", "muted", "dark", "brand"] as const;
 const toneRhythmValues = ["quiet", "editorial", "dense", "dramatic"] as const;
+const fallbackGeneratedImageSrc =
+  "https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=1600&q=80";
 
 type GeneratedLayout = (typeof generatedLayoutValues)[number];
 
@@ -261,7 +263,15 @@ function normalizeImage(value: unknown) {
   const src = stringValue(value.src);
   const alt = stringValue(value.alt);
 
-  return src && alt ? { src, alt } : undefined;
+  if (!src || !alt) {
+    return undefined;
+  }
+
+  const normalizedSrc = /^https:\/\//i.test(src)
+    ? src
+    : fallbackGeneratedImageSrc;
+
+  return { src: normalizedSrc, alt };
 }
 
 type SemanticBlockSpec = {
@@ -709,6 +719,58 @@ function normalizeDeepSeekDocument(parsed: unknown, input: GeneratePageInput): E
   return result.success ? (result.data as EnterprisePageDocument) : null;
 }
 
+function describeMappingIssues(parsed: unknown) {
+  const issues: string[] = [];
+
+  if (!isRecord(parsed)) {
+    return ["Root JSON is not an object."];
+  }
+
+  if (!Array.isArray(parsed.blocks)) {
+    issues.push("No valid blocks were mapped. The document must contain a top-level blocks array.");
+
+    if (Array.isArray(parsed.sections)) {
+      issues.push("Top-level sections must be remapped to blocks.");
+    }
+
+    if (Array.isArray(parsed.components)) {
+      issues.push("Top-level components must be remapped to blocks.");
+    }
+
+    if (Array.isArray(parsed.modules)) {
+      issues.push("Top-level modules must be remapped to blocks.");
+    }
+
+    return issues;
+  }
+
+  if (parsed.blocks.length === 0) {
+    return ["No valid blocks were mapped. The blocks array is empty."];
+  }
+
+  const validBlockCount = parsed.blocks.filter((block) => isRecord(block) && normalizeBlock(block)).length;
+
+  if (validBlockCount === 0) {
+    issues.push("No valid blocks were mapped. Every block must be convertible to aiGeneratedSection.");
+  }
+
+  const unsupportedTypes = parsed.blocks.flatMap((block) => {
+    if (!isRecord(block)) {
+      return [];
+    }
+
+    const type = stringValue(block.type);
+
+    return type && type !== "aiGeneratedSection" ? [type] : [];
+  });
+
+  if (unsupportedTypes.length > 0) {
+    issues.push(`Unsupported block.type values must be remapped: ${Array.from(new Set(unsupportedTypes)).join(", ")}.`);
+  }
+
+  return issues.length > 0 ? issues : ["The output did not pass the EnterprisePageDocument schema."];
+}
+
 function buildUserPrompt(input: GeneratePageInput): string {
   return JSON.stringify({
     prompt: input.prompt,
@@ -716,6 +778,60 @@ function buildUserPrompt(input: GeneratePageInput): string {
     style: input.style,
     pageType: input.pageType,
   });
+}
+
+function buildMappingRepairPrompt(input: GeneratePageInput, invalidContent: string, parsed: unknown) {
+  return JSON.stringify({
+    originalRequest: {
+      prompt: input.prompt,
+      industry: input.industry,
+      style: input.style,
+      pageType: input.pageType,
+    },
+    mappingIssues: describeMappingIssues(parsed),
+    invalidOutput: isRecord(parsed) ? parsed : invalidContent,
+  });
+}
+
+async function requestDeepSeekMappingRepair(
+  input: GeneratePageInput,
+  apiKey: string,
+  invalidContent: string,
+  parsed: unknown,
+): Promise<EnterprisePageDocument | null> {
+  let response: Response;
+
+  try {
+    response = await requestDeepSeekCompletion(
+      apiKey,
+      {
+        model: process.env.DEEPSEEK_MODEL || "deepseek-v4-flash",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: pageMappingRepairSystemPrompt },
+          { role: "user", content: buildMappingRepairPrompt(input, invalidContent, parsed) },
+        ],
+      },
+    );
+  } catch {
+    throw new Error("DeepSeek 页面结构修正请求失败");
+  }
+
+  if (!response.ok) {
+    const detail = await readDeepSeekErrorDetail(response);
+    const statusMessage = `DeepSeek 页面结构修正请求失败（HTTP ${response.status}）`;
+
+    throw new Error(detail ? `${statusMessage}：${detail}` : statusMessage);
+  }
+
+  const payload = (await response.json()) as DeepSeekResponse;
+  const content = payload.choices?.[0]?.message?.content;
+
+  if (!content?.trim()) {
+    return null;
+  }
+
+  return normalizeDeepSeekDocument(extractJsonObject(content), input);
 }
 
 async function requestDeepSeekPage(input: GeneratePageInput, apiKey: string): Promise<EnterprisePageDocument> {
@@ -756,13 +872,20 @@ async function requestDeepSeekPage(input: GeneratePageInput, apiKey: string): Pr
     throw new Error("DeepSeek 返回页面内容为空");
   }
 
-  const document = normalizeDeepSeekDocument(extractJsonObject(content), input);
+  const parsed = extractJsonObject(content);
+  const document = normalizeDeepSeekDocument(parsed, input);
 
-  if (!document) {
+  if (document) {
+    return document;
+  }
+
+  const repairedDocument = await requestDeepSeekMappingRepair(input, apiKey, content, parsed);
+
+  if (!repairedDocument) {
     throw new Error("DeepSeek 页面结构无效");
   }
 
-  return document;
+  return repairedDocument;
 }
 
 export async function generatePageWithAI(input: GeneratePageInput): Promise<EnterprisePageDocument> {
