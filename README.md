@@ -17,7 +17,6 @@ code/
     modules/             # 页面区块模块和区块注册表
     store/               # 编辑器状态
     types/               # 页面和区块类型
-  tests/                 # Vitest 自动化测试
 ```
 
 ## 主要入口
@@ -102,7 +101,7 @@ DEEPSEEK_MAX_TOKENS=8192
 - `src/lib/ai/generatePage.ts`：AI 页面生成。
 - `src/lib/ai/editBlock.ts`：AI 区块修改。
 
-AI 页面生成会创建 `aiGeneratedSection` 页面级承载区块。生成区块属于当前页面，可继续编辑、保存、导出和发布。生成结果会经过结构校验和设计质量校验后写入页面。
+AI 页面生成会创建 `aiGeneratedSection` 页面级承载区块。生成区块属于当前页面，可继续编辑、保存、导出和发布。生成流程会先归一化模型输出；当模型返回内容不能直接映射到渲染协议时，程序会再次调用 DeepSeek 完成协议修正。最终写入页面的区块使用通用页面结构，图片地址会规范为可直接加载的公开 HTTPS URL。
 
 ## 常用脚本
 
